@@ -10,7 +10,7 @@ python = "^3.12"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
-ruff = "^0.6.3"
+ruff = ">=0.7.0"
 pytest-ruff = "^0.4.1"
 fakeredis = "^2.25.1"
 pytest-httpx = "^0.32.0"
