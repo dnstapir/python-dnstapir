@@ -2,7 +2,7 @@ import fakeredis
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
-from tapir.key_cache import CombinedKeyCache, KeyCache, MemoryKeyCache, RedisKeyCache
+from dnstapir.key_cache import CombinedKeyCache, KeyCache, MemoryKeyCache, RedisKeyCache
 
 
 def _test_key_cache(key_cache: KeyCache):

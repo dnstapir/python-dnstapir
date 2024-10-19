@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from tapir.telemetry import configure_opentelemetry
+from dnstapir.telemetry import configure_opentelemetry
 
 
 def test_telemetry():

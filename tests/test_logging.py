@@ -1,7 +1,7 @@
 import logging
 import logging.config
 
-from tapir.logging import JsonFormatter  # noqa
+from dnstapir.logging import JsonFormatter  # noqa
 
 LOGGING_RECORD_CUSTOM_FORMAT = {
     "time": "asctime",
