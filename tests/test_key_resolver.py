@@ -2,7 +2,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from pytest_httpx import HTTPXMock
 
-from tapir.key_resolver import UrlKeyResolver
+from dnstapir.key_resolver import UrlKeyResolver
 
 
 def test_url_key_resolver(httpx_mock: HTTPXMock):

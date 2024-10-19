@@ -26,7 +26,7 @@ LOGGING_CONFIG_JSON = {
     "disable_existing_loggers": False,
     "formatters": {
         "json": {
-            "class": "tapir.logging.JsonFormatter",
+            "class": "dnstapir.logging.JsonFormatter",
             "format": LOGGING_RECORD_CUSTOM_FORMAT,
         },
     },
