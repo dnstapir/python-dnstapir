@@ -3,15 +3,19 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 import httpx
+from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
+from cryptography.hazmat.primitives.asymmetric.ed448 import Ed448PublicKey
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
-from http_message_signatures import HTTPSignatureKeyResolver
 from opentelemetry import metrics, trace
 
 from .key_cache import KeyCache
 
-tracer = trace.get_tracer("tapir.tracer")
-meter = metrics.get_meter("tapir.meter")
+type PublicKey = Ed25519PublicKey | Ed448PublicKey | EllipticCurvePublicKey | RSAPublicKey
 
+tracer = trace.get_tracer("dnstapir.tracer")
+meter = metrics.get_meter("dnstapir.meter")
 
 public_key_get_counter = meter.create_counter(
     "aggregates.public_key_get_counter",
@@ -19,7 +23,20 @@ public_key_get_counter = meter.create_counter(
 )
 
 
-class CacheKeyResolver(HTTPSignatureKeyResolver):
+def key_resolver_from_client_database(client_database: str, key_cache: KeyCache | None = None):
+    if client_database.startswith("http://") or client_database.startswith("https://"):
+        return UrlKeyResolver(client_database_base_url=client_database, key_cache=key_cache)
+    else:
+        return FileKeyResolver(client_database_directory=client_database, key_cache=key_cache)
+
+
+class KeyResolver:
+    @abstractmethod
+    def resolve_public_key(self, key_id: str) -> PublicKey:
+        pass
+
+
+class CacheKeyResolver(KeyResolver):
     def __init__(self, key_cache: KeyCache | None):
         self.key_cache = key_cache
 

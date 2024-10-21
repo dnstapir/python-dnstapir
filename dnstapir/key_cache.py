@@ -5,8 +5,32 @@ from abc import abstractmethod
 import redis
 from expiringdict import ExpiringDict
 from opentelemetry import trace
+from pydantic import BaseModel, Field
 
-tracer = trace.get_tracer("tapir.tracer")
+tracer = trace.get_tracer("dnstapir.tracer")
+
+
+class RedisSettings(BaseModel):
+    host: str = Field(description="Redis hostname")
+    port: int = Field(description="Redis port", default=6379)
+
+
+class KeyCacheSettings(BaseModel):
+    size: int = Field(description="Cache size", default=1000)
+    ttl: int = Field(description="Cache TTL", default=300)
+    redis: RedisSettings | None = None
+
+
+def key_cache_from_settings(settings: KeyCacheSettings):
+    memory_key_cache = MemoryKeyCache(size=settings.size, ttl=settings.ttl)
+    if settings.redis:
+        redis_client = redis.StrictRedis(host=settings.redis.host, port=settings.redis.port)
+        redis_key_cache = RedisKeyCache(redis_client=redis_client, ttl=settings.ttl)
+        return CombinedKeyCache([memory_key_cache, redis_key_cache]) if settings.size else redis_key_cache
+    elif settings.size:
+        return memory_key_cache
+    else:
+        return DummyKeyCache()
 
 
 class KeyCache:
