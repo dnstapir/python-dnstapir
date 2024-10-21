@@ -1,11 +1,9 @@
 import logging
-import logging.config
 
-from dnstapir.logging import LOGGING_CONFIG_JSON
+from dnstapir.logging import configure_json_logging
 
 
 def test_logging():
+    configure_json_logging()
     logger = logging.getLogger(__name__)
-    logging_config = LOGGING_CONFIG_JSON
-    logging.config.dictConfig(logging_config)
-    logger.warning("Hello")
+    logger.warning("Hello world")

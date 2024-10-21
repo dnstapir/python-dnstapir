@@ -1,3 +1,4 @@
+import logging.config
 from datetime import datetime
 
 from jsonformatter import JsonFormatter as _JsonFormatter
@@ -42,3 +43,7 @@ class JsonFormatter(_JsonFormatter):
     def formatTime(self, record, datefmt=None):
         dt = datetime.fromtimestamp(record.created).astimezone()
         return dt.strftime(TIMESTAMP_FORMAT)
+
+
+def configure_json_logging():
+    logging.config.dictConfig(LOGGING_CONFIG_JSON)
