@@ -18,7 +18,7 @@ opentelemetry-instrumentation-fastapi = "^0.48b0"
 opentelemetry-instrumentation-pymongo = "^0.48b0"
 pydantic = "^2.9.2"
 pymongo = "^4.10.1"
-redis = "^5.1.1"
+redis = "^5.2.0"
 cryptography = "^43.0.3"
 
 [tool.poetry.group.dev.dependencies]
