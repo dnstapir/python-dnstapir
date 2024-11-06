@@ -1,5 +1,6 @@
 import logging.config
 from datetime import datetime
+from typing import Any
 
 from jsonformatter import JsonFormatter as _JsonFormatter
 
@@ -23,7 +24,7 @@ LOGGING_RECORD_CUSTOM_FORMAT = {
     "message": "message",
 }
 
-LOGGING_CONFIG_JSON = {
+LOGGING_CONFIG_JSON: dict[str, Any] = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
@@ -40,10 +41,12 @@ LOGGING_CONFIG_JSON = {
 
 
 class JsonFormatter(_JsonFormatter):
-    def formatTime(self, record, datefmt=None):
+    def formatTime(self, record, datefmt=None) -> str:
         dt = datetime.fromtimestamp(record.created).astimezone()
         return dt.strftime(TIMESTAMP_FORMAT)
 
 
-def configure_json_logging():
+def configure_json_logging() -> dict[str, Any]:
+    """Configure JSON logging and return configuration dictionary"""
     logging.config.dictConfig(LOGGING_CONFIG_JSON)
+    return LOGGING_CONFIG_JSON
