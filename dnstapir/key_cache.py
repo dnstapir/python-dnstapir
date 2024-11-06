@@ -3,7 +3,7 @@ import time
 from abc import abstractmethod
 
 import redis
-from expiringdict import ExpiringDict
+from faas_cache_dict import FaaSCacheDict
 from opentelemetry import trace
 from pydantic import BaseModel, Field
 
@@ -57,7 +57,7 @@ class DummyKeyCache(KeyCache):
 class MemoryKeyCache(KeyCache):
     def __init__(self, size: int, ttl: int):
         super().__init__()
-        self.cache = ExpiringDict(max_len=size, max_age_seconds=ttl)
+        self.cache = FaaSCacheDict(default_ttl=ttl, max_items=size)
         self.logger.info("Configured memory key cache size=%d ttl=%d", size, ttl)
 
     def get(self, key: str) -> bytes | None:
