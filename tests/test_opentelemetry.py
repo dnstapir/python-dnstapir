@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 
-from dnstapir.opentelemetry import configure_opentelemetry
+from dnstapir.opentelemetry import OtlpSettings, configure_opentelemetry
 
 
 def test_telemetry():
     app = FastAPI()
-    configure_opentelemetry(service_name="test", fastapi_app=app)
+    settings = OtlpSettings()
+    configure_opentelemetry(service_name="test", settings=settings, fastapi_app=app)
