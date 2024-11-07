@@ -37,7 +37,7 @@ def configure_opentelemetry(
 
     trace_provider = TracerProvider(resource=resource)
     processor = BatchSpanProcessor(
-        OTLPSpanExporter(endpoint=settings.spans_endpoint, insecure=settings.insecure)
+        OTLPSpanExporter(endpoint=str(settings.spans_endpoint), insecure=settings.insecure)
         if settings.spans_endpoint
         else ConsoleSpanExporter()
     )
@@ -46,7 +46,7 @@ def configure_opentelemetry(
     logger.debug("OTLP spans via %s", settings.spans_endpoint or "console")
 
     reader = PeriodicExportingMetricReader(
-        OTLPMetricExporter(endpoint=settings.metrics_endpoint, insecure=settings.insecure)
+        OTLPMetricExporter(endpoint=str(settings.metrics_endpoint), insecure=settings.insecure)
         if settings.metrics_endpoint
         else ConsoleMetricExporter()
     )
