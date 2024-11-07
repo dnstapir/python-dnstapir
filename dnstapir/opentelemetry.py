@@ -7,6 +7,7 @@ from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.botocore import BotocoreInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
+from opentelemetry.instrumentation.redis import RedisInstrumentor
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import ConsoleMetricExporter, PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
@@ -17,11 +18,11 @@ logger = logging.getLogger(__name__)
 
 
 def configure_opentelemetry(
-    app: FastAPI,
     service_name: str,
     spans_endpoint: str | None = None,
     metrics_endpoint: str | None = None,
     insecure: bool = True,
+    fastapi_app: FastAPI | None = None,
 ) -> None:
     resource = Resource(attributes={SERVICE_NAME: service_name})
 
@@ -43,15 +44,17 @@ def configure_opentelemetry(
     metrics.set_meter_provider(meterProvider)
     logger.debug("OTLP metrics via %s", metrics_endpoint or "console")
 
-    FastAPIInstrumentor.instrument_app(
-        app=app,
-        http_capture_headers_server_request=[
-            "x-request-id",
-            "traceparent",
-            "tracestate",
-        ],
-    )
+    if fastapi_app:
+        FastAPIInstrumentor.instrument_app(
+            app=fastapi_app,
+            http_capture_headers_server_request=[
+                "x-request-id",
+                "traceparent",
+                "tracestate",
+            ],
+        )
     PymongoInstrumentor().instrument()
     BotocoreInstrumentor().instrument()
+    RedisInstrumentor().instrument()
 
     logger.info("OpenTelemetry configured")
