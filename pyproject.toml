@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dnstapir"
-version = "1.0.0"
+version = "1.0.1"
 description = "DNS TAPIR Python Library"
 authors = ["Jakob Schlyter <jakob@kirei.se>"]
 readme = "README.md"
