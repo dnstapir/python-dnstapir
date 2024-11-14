@@ -1508,4 +1508,4 @@ opentelemetry = ["opentelemetry-exporter-otlp", "opentelemetry-instrumentation-b
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "a26210b40ec713e8ed7e38aa651bd2272d3bb57daf00e2d94da68b80af81db2f"
+content-hash = "3a6b860ad992c5fd3b3a38fe66c4d42586ede593cf1eca4487353bfc81d69176"
