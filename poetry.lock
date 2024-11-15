@@ -330,20 +330,20 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "deprecated"
-version = "1.2.14"
+version = "1.2.15"
 description = "Python @deprecated decorator to deprecate old python classes, functions or methods."
 optional = true
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
 files = [
-    {file = "Deprecated-1.2.14-py2.py3-none-any.whl", hash = "sha256:6fac8b097794a90302bdbb17b9b815e732d3c4720583ff1b198499d78470466c"},
-    {file = "Deprecated-1.2.14.tar.gz", hash = "sha256:e5323eb936458dccc2582dc6f9c322c852a775a27065ff2b0c4970b9d53d01b3"},
+    {file = "Deprecated-1.2.15-py2.py3-none-any.whl", hash = "sha256:353bc4a8ac4bfc96800ddab349d89c25dec1079f65fd53acdcc1e0b975b21320"},
+    {file = "deprecated-1.2.15.tar.gz", hash = "sha256:683e561a90de76239796e6b6feac66b99030d2dd3fcf61ef996330f14bbb9b0d"},
 ]
 
 [package.dependencies]
 wrapt = ">=1.10,<2"
 
 [package.extras]
-dev = ["PyTest", "PyTest-Cov", "bump2version (<1)", "sphinx (<2)", "tox"]
+dev = ["PyTest", "PyTest-Cov", "bump2version (<1)", "jinja2 (>=3.0.3,<3.1.0)", "setuptools", "sphinx (<2)", "tox"]
 
 [[package]]
 name = "dnspython"
@@ -580,17 +580,14 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "idna"
-version = "3.10"
+version = "3.4"
 description = "Internationalized Domain Names in Applications (IDNA)"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.5"
 files = [
-    {file = "idna-3.10-py3-none-any.whl", hash = "sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3"},
-    {file = "idna-3.10.tar.gz", hash = "sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9"},
+    {file = "idna-3.4-py3-none-any.whl", hash = "sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2"},
+    {file = "idna-3.4.tar.gz", hash = "sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4"},
 ]
-
-[package.extras]
-all = ["flake8 (>=7.1.1)", "mypy (>=1.11.2)", "pytest (>=8.3.2)", "ruff (>=0.6.2)"]
 
 [[package]]
 name = "importlib-metadata"
@@ -979,6 +976,21 @@ files = [
     {file = "protobuf-5.28.3-py3-none-any.whl", hash = "sha256:cee1757663fa32a1ee673434fcf3bf24dd54763c79690201208bafec62f19eed"},
     {file = "protobuf-5.28.3.tar.gz", hash = "sha256:64badbc49180a5e401f373f9ce7ab1d18b63f7dd4a9cdc43c92b9f0b481cef7b"},
 ]
+
+[[package]]
+name = "punycode"
+version = "0.2.1"
+description = "Punycode Converter Library for Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "punycode-0.2.1-py3-none-any.whl", hash = "sha256:5c6c2c1fcfdcd50752fe4e68d402495d9ae2a71ac73915bc6af39cc7ccd99eb5"},
+    {file = "punycode-0.2.1.tar.gz", hash = "sha256:2619d4cc3d517f5b15f092d2e4108f37a44689514207f359ae6c5edf4fcc341d"},
+]
+
+[package.dependencies]
+idna = "3.4"
+wincertstore = "0.2"
 
 [[package]]
 name = "pycparser"
@@ -1405,6 +1417,17 @@ socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
+name = "wincertstore"
+version = "0.2"
+description = "Python module to extract CA and CRL certs from Windows' cert store (ctypes based)."
+optional = false
+python-versions = "*"
+files = [
+    {file = "wincertstore-0.2-py2.py3-none-any.whl", hash = "sha256:22d5eebb52df88a8d4014d5cf6d1b6c3a5d469e6c3b2e2854f3a003e48872356"},
+    {file = "wincertstore-0.2.zip", hash = "sha256:780bd1557c9185c15d9f4221ea7f905cb20b93f7151ca8ccaed9714dce4b327a"},
+]
+
+[[package]]
 name = "wrapt"
 version = "1.16.0"
 description = "Module for decorators, wrappers and monkey patching."
@@ -1509,4 +1532,4 @@ opentelemetry = ["botocore", "fastapi", "opentelemetry-api", "opentelemetry-expo
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "0956219725bfe0ed8d870858f559baa914b75a11535e52d7c4a6be143ff10caa"
+content-hash = "7838a6ecc014da58ff46b61e7b3bc663ecdcfe65d85ad72dbca146789920cd50"
