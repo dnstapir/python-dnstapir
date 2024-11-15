@@ -2,7 +2,6 @@ import io
 from typing import Self
 
 import httpx
-import punycode
 
 
 class TrieNode:
@@ -108,7 +107,7 @@ class PublicSuffixList:
                 labels -= 2
 
             # Convert from Unicode
-            lbls = punycode.convert(line).split(".")
+            lbls = line.encode("idna").decode().split(".")
 
             # Store reversed
             lbls.reverse()
