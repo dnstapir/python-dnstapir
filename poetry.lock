@@ -1509,4 +1509,4 @@ opentelemetry = ["botocore", "fastapi", "opentelemetry-api", "opentelemetry-expo
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "767b6fdbed43acedc1832556dba77ff690bb94c86b20ee71ae0a16a2358acc71"
+content-hash = "0956219725bfe0ed8d870858f559baa914b75a11535e52d7c4a6be143ff10caa"
