@@ -117,7 +117,12 @@ class PublicSuffixList:
 
     def coredomain(self, domain: str) -> tuple[str, str]:
         """Find ICANN and private name cut-off for domain"""
-        domain = domain.rstrip(".")
+        if not domain:
+            raise ValueError
+        try:
+            domain = domain.rstrip(".")
+        except AttributeError as exc:
+            raise ValueError from exc
         lbls = domain.split(".")
         lbls.reverse()
         c, p = self.trie.search(lbls)

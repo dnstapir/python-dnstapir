@@ -24,3 +24,14 @@ def test_mozpsl():
 
     with pytest.raises(KeyError):
         psl.coredomain("local.")
+
+    # IDN test
+    assert psl.coredomain("www.xn--mnchen-3ya.de.") == ("xn--mnchen-3ya.de", "")
+
+    # Edge cases
+    with pytest.raises(ValueError):
+        psl.coredomain("")
+    with pytest.raises(ValueError):
+        psl.coredomain(None)
+    with pytest.raises(KeyError):
+        psl.coredomain("invalid..domain.")
