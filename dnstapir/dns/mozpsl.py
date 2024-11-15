@@ -43,12 +43,15 @@ class Trie:
 
     def search(self, key: list[str]) -> tuple[int, int]:
         """Search Trie"""
+        core = 0
+        pcore = 0
         current = self.root
         for label in key:
-            if current.icann:
+            if current.icann is True:
                 core = current.count
-            else:
+            elif current.icann is False:
                 pcore = current.count
+            # # If current.icann is None, do not update core or pcore
             if label not in current.children:
                 if current.count != 0:
                     break
