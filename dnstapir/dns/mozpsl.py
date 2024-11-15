@@ -21,7 +21,7 @@ class Trie:
     def __repr__(self) -> str:
         """Print full Trie structure"""
 
-        def recur(node: TrieNode, indent: str):
+        def recur(node: TrieNode, indent: str) -> str:
             return "".join(
                 indent + key + (f" {child.count}" if child.count else "") + recur(child, indent + " - ")
                 for key, child in node.children.items()
