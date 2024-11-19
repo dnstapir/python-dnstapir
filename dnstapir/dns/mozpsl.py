@@ -130,12 +130,23 @@ class PublicSuffixList:
             raise ValueError from exc
         lbls = domain.split(".")
         lbls.reverse()
+
         c, p = self.trie.search(lbls)
-        core = lbls[0:c]
-        core.reverse()
-        pcore = lbls[0:p]
-        pcore.reverse()
-        return (".".join(core)+".", ".".join(pcore)+".")
+        if c != 0:
+            core = lbls[0:c]
+            core.reverse()
+            core_txt = ".".join(core) + "."
+        else:
+            core_txt = ""
+
+        if p != 0:
+            pcore = lbls[0:p]
+            pcore.reverse()
+            pcore_txt = ".".join(pcore) + "." 
+        else:
+            pcore_txt = ""
+
+        return (core_txt, pcore_txt)
 
     def rdomain(self, rdomain: str) -> tuple[str, str]:
         """Find ICANN and private name cut-off for domain, reverse order process"""
