@@ -18,8 +18,8 @@ def test_mozpsl():
         "something.emrstudio-prod.us-gov-east-1.amazonaws.com.",
     )
     assert psl.rdomain("com.amazonaws.us-gov-east-1.emrstudio-prod.www.something.emrstudio-prod") == (
-        "com.amazonaws.",
-        "com.amazonaws.us-gov-east-1.emrstudio-prod.www.",
+        "com.amazonaws",
+        "com.amazonaws.us-gov-east-1.emrstudio-prod.www",
     )
 
     with pytest.raises(KeyError):
