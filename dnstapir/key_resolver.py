@@ -76,7 +76,7 @@ class UrlKeyResolver(CacheKeyResolver):
     def __init__(self, client_database_base_url: str, key_cache: KeyCache | None = None):
         super().__init__(key_cache=key_cache)
         self.client_database_base_url = client_database_base_url
-        self.httpx_client = httpx.Client()
+        self._httpx_client: httpx.Client | None = None
 
     def get_public_key_pem(self, key_id: str) -> bytes:
         with tracer.start_as_current_span("get_public_key_pem_from_url"):
@@ -87,3 +87,26 @@ class UrlKeyResolver(CacheKeyResolver):
                 return response.content
             except httpx.HTTPError as exc:
                 raise KeyError(key_id) from exc
+
+    @property
+    def httpx_client(self) -> httpx.Client:
+        if self._httpx_client is None:
+            self._httpx_client = httpx.Client()
+        return self._httpx_client
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def __del__(self):
+        self.close()
+
+    def close(self):
+        """Explicitly close the client and free resources."""
+        if self._httpx_client is not None:
+            try:
+                self._httpx_client.close()
+            finally:
+                self._httpx_client = None
