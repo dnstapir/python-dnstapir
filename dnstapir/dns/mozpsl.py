@@ -1,4 +1,5 @@
 import io
+
 import httpx
 
 
@@ -8,7 +9,7 @@ class TrieNode:
     def __init__(self) -> None:
         self.count = 0
         self.icann: bool | None = None
-        self.children = {}
+        self.children: dict[str, TrieNode] = {}
 
 
 class Trie:
@@ -46,7 +47,7 @@ class Trie:
         current = self.root
         for label in key:
             if label not in current.children:
-                #if '*' in current.children:
+                # if '*' in current.children:
                 #    current = current.children['*']
                 if current.count != 0:
                     break
@@ -142,7 +143,7 @@ class PublicSuffixList:
         if p != 0:
             pcore = lbls[0:p]
             pcore.reverse()
-            pcore_txt = ".".join(pcore) + "." 
+            pcore_txt = ".".join(pcore) + "."
         else:
             pcore_txt = ""
 
