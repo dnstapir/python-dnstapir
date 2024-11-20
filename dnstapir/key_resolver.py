@@ -12,7 +12,7 @@ from opentelemetry import metrics, trace
 
 from .key_cache import KeyCache
 
-type PublicKey = Ed25519PublicKey | Ed448PublicKey | EllipticCurvePublicKey | RSAPublicKey
+PublicKey = Ed25519PublicKey | Ed448PublicKey | EllipticCurvePublicKey | RSAPublicKey
 
 tracer = trace.get_tracer("dnstapir.tracer")
 meter = metrics.get_meter("dnstapir.meter")
