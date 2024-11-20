@@ -94,6 +94,19 @@ class UrlKeyResolver(CacheKeyResolver):
             self._httpx_client = httpx.Client()
         return self._httpx_client
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     def __del__(self):
+        self.close()
+
+    def close(self):
+        """Explicitly close the client and free resources."""
         if self._httpx_client is not None:
-            self._httpx_client.close()
+            try:
+                self._httpx_client.close()
+            finally:
+                self._httpx_client = None
