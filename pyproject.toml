@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dnstapir"
-version = "1.0.1"
+version = "1.1.0"
 description = "DNS TAPIR Python Library"
 authors = ["Jakob Schlyter <jakob@kirei.se>"]
 readme = "README.md"
@@ -16,7 +16,7 @@ opentelemetry-instrumentation-pymongo = { version = ">=0.48b0", optional = true 
 opentelemetry-instrumentation-redis = { version = ">=0.48b0", optional = true }
 botocore = { version = "^1.35.64", optional = true }
 fastapi = { version = ">=0.115.2", optional = true }
-cryptography = { version = "^43.0.3", optional = true }
+cryptography = { version = ">=43.0.3", optional = true }
 faas-cache-dict = { version = "^0.5.0", optional = true }
 httpx = { version = ">=0.27.2", optional = true }
 pydantic = { version = "^2.9.2", optional = true }
