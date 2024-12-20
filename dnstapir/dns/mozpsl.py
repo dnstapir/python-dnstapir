@@ -1,5 +1,4 @@
 import io
-from typing import Self
 
 import httpx
 
@@ -10,7 +9,7 @@ class TrieNode:
     def __init__(self) -> None:
         self.count = 0
         self.icann: bool | None = None
-        self.children: dict[str, Self] = {}
+        self.children: dict[str, TrieNode] = {}
 
 
 class Trie:
@@ -47,17 +46,21 @@ class Trie:
         pcore = 0
         current = self.root
         for label in key:
-            if current.icann is True:
-                core = current.count
-            elif current.icann is False:
-                pcore = current.count
-            # # If current.icann is None, do not update core or pcore
             if label not in current.children:
+                # if '*' in current.children:
+                #    current = current.children['*']
                 if current.count != 0:
                     break
                 else:
                     raise KeyError
-            current = current.children[label]
+            else:
+                current = current.children[label]
+
+            # If current.icann is None, do not update core or pcore
+            if current.icann is True:
+                core = current.count
+            elif current.icann is False:
+                pcore = current.count
         if pcore == core:
             pcore = 0
         return (core, pcore)
@@ -128,12 +131,23 @@ class PublicSuffixList:
             raise ValueError from exc
         lbls = domain.split(".")
         lbls.reverse()
+
         c, p = self.trie.search(lbls)
-        core = lbls[0:c]
-        core.reverse()
-        pcore = lbls[0:p]
-        pcore.reverse()
-        return (".".join(core), ".".join(pcore))
+        if c != 0:
+            core = lbls[0:c]
+            core.reverse()
+            core_txt = ".".join(core) + "."
+        else:
+            core_txt = ""
+
+        if p != 0:
+            pcore = lbls[0:p]
+            pcore.reverse()
+            pcore_txt = ".".join(pcore) + "."
+        else:
+            pcore_txt = ""
+
+        return (core_txt, pcore_txt)
 
     def rdomain(self, rdomain: str) -> tuple[str, str]:
         """Find ICANN and private name cut-off for domain, reverse order process"""
