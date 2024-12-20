@@ -25,6 +25,9 @@ def test_file_key_resolver(httpx_mock: HTTPXMock):
         res = resolver.resolve_public_key(key_id)
         assert res == public_key
 
+        with pytest.raises(ValueError):
+            _ = resolver.resolve_public_key("🔐")
+
         with pytest.raises(KeyError):
             _ = resolver.resolve_public_key("unknown")
 
