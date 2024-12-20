@@ -32,7 +32,6 @@ def key_resolver_from_client_database(client_database: str, key_cache: KeyCache 
 
 
 class KeyResolver:
-
     def __init__(self):
         self.logger = logging.getLogger(__name__).getChild(self.__class__.__name__)
 
