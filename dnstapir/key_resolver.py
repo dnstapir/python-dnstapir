@@ -1,3 +1,4 @@
+import logging
 from abc import abstractmethod
 from pathlib import Path
 from urllib.parse import urljoin
@@ -31,6 +32,10 @@ def key_resolver_from_client_database(client_database: str, key_cache: KeyCache 
 
 
 class KeyResolver:
+
+    def __init__(self):
+        self.logger = logging.getLogger(__name__).getChild(self.__class__.__name__)
+
     @abstractmethod
     def resolve_public_key(self, key_id: str) -> PublicKey:
         pass
@@ -38,6 +43,7 @@ class KeyResolver:
 
 class CacheKeyResolver(KeyResolver):
     def __init__(self, key_cache: KeyCache | None):
+        super().__init__()
         self.key_cache = key_cache
 
     @abstractmethod
@@ -65,6 +71,7 @@ class FileKeyResolver(CacheKeyResolver):
     def get_public_key_pem(self, key_id: str) -> bytes:
         with tracer.start_as_current_span("get_public_key_pem_from_file"):
             filename = Path(self.client_database_directory) / f"{key_id}.pem"
+            self.logger.debug("Fetching public key for %s from %s", key_id, filename)
             try:
                 with open(filename, "rb") as fp:
                     return fp.read()
@@ -77,10 +84,15 @@ class UrlKeyResolver(CacheKeyResolver):
         super().__init__(key_cache=key_cache)
         self.client_database_base_url = client_database_base_url
         self._httpx_client: httpx.Client | None = None
+        self.key_id_pattern = "%s"
 
     def get_public_key_pem(self, key_id: str) -> bytes:
         with tracer.start_as_current_span("get_public_key_pem_from_url"):
-            public_key_url = urljoin(self.client_database_base_url, f"{key_id}.pem")
+            if self.key_id_pattern in self.client_database_base_url:
+                public_key_url = self.client_database_base_url.replace(self.key_id_pattern, key_id)
+            else:
+                public_key_url = urljoin(self.client_database_base_url, f"{key_id}.pem")
+            self.logger.debug("Fetching public key for %s from %s", key_id, public_key_url)
             try:
                 response = self.httpx_client.get(public_key_url)
                 response.raise_for_status()
@@ -91,7 +103,7 @@ class UrlKeyResolver(CacheKeyResolver):
     @property
     def httpx_client(self) -> httpx.Client:
         if self._httpx_client is None:
-            self._httpx_client = httpx.Client()
+            self._httpx_client = httpx.Client(headers={"Accept": "application/x-pem-file"})
         return self._httpx_client
 
     def __enter__(self):
