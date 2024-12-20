@@ -46,6 +46,9 @@ def test_url_key_resolver(httpx_mock: HTTPXMock):
     request = httpx_mock.get_request()
     assert request.headers["Accept"] == "application/x-pem-file"
 
+    with pytest.raises(ValueError):
+        _ = resolver.resolve_public_key("🔐")
+
     with pytest.raises(KeyError):
         _ = resolver.resolve_public_key("unknown")
 
