@@ -43,6 +43,9 @@ def test_url_key_resolver(httpx_mock: HTTPXMock):
     res = resolver.resolve_public_key(key_id)
     assert res == public_key
 
+    request = httpx_mock.get_request()
+    assert request.headers["Accept"] == "application/x-pem-file"
+
     with pytest.raises(KeyError):
         _ = resolver.resolve_public_key("unknown")
 
@@ -60,6 +63,9 @@ def test_url_key_resolver_pattern(httpx_mock: HTTPXMock):
     resolver = UrlKeyResolver(client_database_base_url="https://nodeman/api/v1/node/%s/public_key")
     res = resolver.resolve_public_key(key_id)
     assert res == public_key
+
+    request = httpx_mock.get_request()
+    assert request.headers["Accept"] == "application/x-pem-file"
 
     with pytest.raises(KeyError):
         _ = resolver.resolve_public_key("unknown")
