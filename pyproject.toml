@@ -27,7 +27,7 @@ redis = { version = "^5.1.1", optional = true }
 pytest = "^8.2.0"
 ruff = ">=0.7.0"
 pytest-ruff = "^0.4.1"
-fakeredis = "^2.25.1"
+fakeredis = "^2.26.2"
 pytest-httpx = "^0.34.0"
 
 [tool.poetry.extras]
