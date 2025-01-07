@@ -77,6 +77,14 @@ def test_url_key_resolver_pattern(httpx_mock: HTTPXMock):
         _ = resolver.resolve_public_key("unknown")
 
 
+def test_url_bad_key_resolver_pattern():
+    with pytest.raises(ValueError):
+        _ = UrlKeyResolver(client_database_base_url="ftp://nodeman/api/v1/node/{key_id}/public_key")
+
+    with pytest.raises(ValueError):
+        _ = UrlKeyResolver(client_database_base_url="ftp://keys")
+
+
 def test_url_key_resolver_contextlib(httpx_mock: HTTPXMock):
     key_id = "xyzzy"
     public_key = ed25519.Ed25519PrivateKey.generate().public_key()

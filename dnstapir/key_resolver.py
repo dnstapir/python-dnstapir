@@ -88,9 +88,18 @@ class FileKeyResolver(CacheKeyResolver):
 class UrlKeyResolver(CacheKeyResolver):
     def __init__(self, client_database_base_url: str, key_cache: KeyCache | None = None):
         super().__init__(key_cache=key_cache)
+
         self.client_database_base_url = client_database_base_url
         self._httpx_client: httpx.Client | None = None
         self.key_id_pattern = "{key_id}"
+
+        if urlparse(self.client_database_base_url).scheme not in ("http", "https"):
+            raise ValueError(f"Invalid URL: {self.client_database_base_url}")
+
+        if self.key_id_pattern in self.client_database_base_url:
+            test_url = self.client_database_base_url.replace(self.key_id_pattern, "test")
+            if urlparse(test_url).scheme not in ("http", "https"):
+                raise ValueError(f"Invalid URL pattern: {self.client_database_base_url}")
 
     def get_public_key_pem(self, key_id: str) -> bytes:
         with tracer.start_as_current_span("get_public_key_pem_from_url"):
