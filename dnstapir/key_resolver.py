@@ -90,7 +90,7 @@ class UrlKeyResolver(CacheKeyResolver):
         super().__init__(key_cache=key_cache)
         self.client_database_base_url = client_database_base_url
         self._httpx_client: httpx.Client | None = None
-        self.key_id_pattern = "%s"
+        self.key_id_pattern = "{key_id}"
 
     def get_public_key_pem(self, key_id: str) -> bytes:
         with tracer.start_as_current_span("get_public_key_pem_from_url"):

@@ -66,7 +66,7 @@ def test_url_key_resolver_pattern(httpx_mock: HTTPXMock):
     httpx_mock.add_response(url=f"https://nodeman/api/v1/node/{key_id}/public_key", content=public_key_pem)
     httpx_mock.add_response(url="https://nodeman/api/v1/node/unknown/public_key", status_code=404)
 
-    resolver = UrlKeyResolver(client_database_base_url="https://nodeman/api/v1/node/%s/public_key")
+    resolver = UrlKeyResolver(client_database_base_url="https://nodeman/api/v1/node/{key_id}/public_key")
     res = resolver.resolve_public_key(key_id)
     assert res == public_key
 
