@@ -66,7 +66,7 @@ def test_url_key_resolver_pattern(httpx_mock: HTTPXMock):
     httpx_mock.add_response(url=f"https://nodeman/api/v1/node/{key_id}/public_key", content=public_key_pem)
     httpx_mock.add_response(url="https://nodeman/api/v1/node/unknown/public_key", status_code=404)
 
-    resolver = UrlKeyResolver(client_database_base_url="https://nodeman/api/v1/node/%s/public_key")
+    resolver = UrlKeyResolver(client_database_base_url="https://nodeman/api/v1/node/{key_id}/public_key")
     res = resolver.resolve_public_key(key_id)
     assert res == public_key
 
@@ -75,6 +75,14 @@ def test_url_key_resolver_pattern(httpx_mock: HTTPXMock):
 
     with pytest.raises(KeyError):
         _ = resolver.resolve_public_key("unknown")
+
+
+def test_url_bad_key_resolver_pattern():
+    with pytest.raises(ValueError):
+        _ = UrlKeyResolver(client_database_base_url="ftp://nodeman/api/v1/node/{key_id}/public_key")
+
+    with pytest.raises(ValueError):
+        _ = UrlKeyResolver(client_database_base_url="ftp://keys")
 
 
 def test_url_key_resolver_contextlib(httpx_mock: HTTPXMock):
