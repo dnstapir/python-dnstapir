@@ -24,6 +24,8 @@ public_key_get_counter = meter.create_counter(
     description="The number of public key lookups",
 )
 
+KEY_ID_VALIDATOR = re.compile(r"^[a-zA-Z0-9_\-.]+$")
+
 
 def key_resolver_from_client_database(client_database: str, key_cache: KeyCache | None = None):
     if client_database.startswith("http://") or client_database.startswith("https://"):
@@ -35,7 +37,7 @@ def key_resolver_from_client_database(client_database: str, key_cache: KeyCache 
 class KeyResolver:
     def __init__(self):
         self.logger = logging.getLogger(__name__).getChild(self.__class__.__name__)
-        self.key_id_validator = re.compile(r"^[a-zA-Z0-9_\-.]+$")
+        self.key_id_validator = KEY_ID_VALIDATOR
 
     @abstractmethod
     def resolve_public_key(self, key_id: str) -> PublicKey:
