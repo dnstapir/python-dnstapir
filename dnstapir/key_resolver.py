@@ -35,7 +35,7 @@ def key_resolver_from_client_database(client_database: str, key_cache: KeyCache 
 class KeyResolver:
     def __init__(self):
         self.logger = logging.getLogger(__name__).getChild(self.__class__.__name__)
-        self.key_id_validator = re.compile(r"^[a-zA-Z0-9_-]+$")
+        self.key_id_validator = re.compile(r"^[a-zA-Z0-9_\-.]+$")
 
     @abstractmethod
     def resolve_public_key(self, key_id: str) -> PublicKey:
