@@ -59,13 +59,13 @@ files = [
 
 [[package]]
 name = "botocore"
-version = "1.35.93"
+version = "1.35.98"
 description = "Low-level, data-driven core of boto 3."
 optional = true
 python-versions = ">=3.8"
 files = [
-    {file = "botocore-1.35.93-py3-none-any.whl", hash = "sha256:47f7161000af6036f806449e3de12acdd3ec11aac7f5578e43e96241413a0f8f"},
-    {file = "botocore-1.35.93.tar.gz", hash = "sha256:b8d245a01e7d64c41edcf75a42be158df57b9518a83a3dbf5c7e4b8c2bc540cc"},
+    {file = "botocore-1.35.98-py3-none-any.whl", hash = "sha256:4f1c0b687488663a774ad3a5e81a5f94fae1bcada2364cfdc48482c4dbf794d5"},
+    {file = "botocore-1.35.98.tar.gz", hash = "sha256:d11742b3824bdeac3c89eeeaf5132351af41823bbcef8fc15e95c8250b1de09c"},
 ]
 
 [package.dependencies]
@@ -1514,4 +1514,4 @@ opentelemetry = ["botocore", "fastapi", "opentelemetry-api", "opentelemetry-expo
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "8c210a1089bb8ed21f3d36561111149fb5edc50c937ac0aa06b8516a97484335"
+content-hash = "12f7fe88bc528c4148a868f607d6a298174e0151ebec1c7510d86ef84192beb9"
