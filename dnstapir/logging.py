@@ -7,6 +7,8 @@ import logging
 import structlog
 from structlog.types import EventDict, Processor
 
+VALID_LOG_LEVELS = set(["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"])
+
 
 def drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
     """
@@ -18,6 +20,11 @@ def drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
 
 
 def setup_logging(json_logs: bool = False, log_level: str = "INFO") -> None:
+    """Set up logging"""
+
+    if log_level.upper() not in VALID_LOG_LEVELS:
+        raise ValueError(f"Invalid log level: {log_level}")
+
     timestamper = structlog.processors.TimeStamper(fmt="iso")
 
     shared_processors: list[Processor] = [
