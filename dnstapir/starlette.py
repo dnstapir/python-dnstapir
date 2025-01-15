@@ -1,3 +1,5 @@
+"""Starlette middleware and other utilities"""
+
 import time
 import uuid
 from collections.abc import Awaitable, Callable
