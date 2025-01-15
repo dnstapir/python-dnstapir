@@ -1,9 +1,9 @@
-import logging
+import structlog
 
-from dnstapir.logging import configure_json_logging
+from dnstapir.logging import setup_logging
 
 
 def test_logging():
-    configure_json_logging()
-    logger = logging.getLogger(__name__)
-    logger.warning("Hello world")
+    setup_logging(json_logs=False, log_level="INFO")
+    logger = structlog.getLogger()
+    logger.warning("Hello %s", "world", foo="bar")
