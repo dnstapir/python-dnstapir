@@ -29,6 +29,8 @@ ruff = ">=0.7.0"
 pytest-ruff = "^0.4.1"
 fakeredis = "^2.25.1"
 pytest-httpx = "^0.34.0"
+fastapi = ">=0.115.7"
+botocore = "^1.36.5"
 
 [tool.poetry.extras]
 keymanager = [
