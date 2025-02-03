@@ -976,6 +976,23 @@ files = [
 markers = {main = "extra == \"opentelemetry\""}
 
 [[package]]
+name = "jwcrypto"
+version = "1.5.6"
+description = "Implementation of JOSE Web standards"
+optional = true
+python-versions = ">= 3.8"
+groups = ["main"]
+markers = "extra == \"keymanager\""
+files = [
+    {file = "jwcrypto-1.5.6-py3-none-any.whl", hash = "sha256:150d2b0ebbdb8f40b77f543fb44ffd2baeff48788be71f67f03566692fd55789"},
+    {file = "jwcrypto-1.5.6.tar.gz", hash = "sha256:771a87762a0c081ae6166958a954f80848820b2ab066937dc8b8379d65b1b039"},
+]
+
+[package.dependencies]
+cryptography = ">=3.4"
+typing-extensions = ">=4.5.0"
+
+[[package]]
 name = "multidict"
 version = "6.1.0"
 description = "multidict implementation"
@@ -2232,10 +2249,10 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 type = ["pytest-mypy"]
 
 [extras]
-keymanager = ["cryptography", "faas-cache-dict", "httpx", "opentelemetry-api", "pydantic", "pymongo", "redis"]
+keymanager = ["cryptography", "faas-cache-dict", "httpx", "jwcrypto", "opentelemetry-api", "pydantic", "pymongo", "redis"]
 opentelemetry = ["botocore", "fastapi", "opentelemetry-api", "opentelemetry-exporter-otlp", "opentelemetry-instrumentation-botocore", "opentelemetry-instrumentation-fastapi", "opentelemetry-instrumentation-pymongo", "opentelemetry-instrumentation-redis"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "e4c3ef2d466e21e52eab3423e461bc45530bd5b2aa3a7abaa1f0ca0d4daa1abf"
+content-hash = "7a0e7d5a5e6fd47dcf113b2cc3bcfec91c5e5b10db91cc432612c8b2f98d9004"
