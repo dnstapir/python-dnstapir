@@ -7,7 +7,7 @@ from jwcrypto.jwk import JWK
 from jwcrypto.jws import JWS
 from pytest_httpx import HTTPXMock
 
-from dnstapir.jws import ResolvedJWKSet, verify_jws_with_keys
+from dnstapir.jws import ResolverJWKSet
 from dnstapir.key_resolver import UrlKeyResolver
 
 
@@ -38,10 +38,10 @@ def test_jws_verifier(httpx_mock: HTTPXMock):
     # Set up key resolver
     client_database_base_url = "https://keys/api/v1/node/{key_id}/public_key"
     key_resolver = UrlKeyResolver(client_database_base_url=client_database_base_url)
-    keyset = ResolvedJWKSet(key_resolver=key_resolver)
+    keyset = ResolverJWKSet(key_resolver=key_resolver)
 
     # Verify message (public key lookup via resolver)
     jws = JWS()
     jws.deserialize(message)
-    verified_jwk = verify_jws_with_keys(jws, keyset)
+    verified_jwk = keyset.verify_jws(jws)
     assert verified_jwk.thumbprint() == public_jwk.thumbprint()

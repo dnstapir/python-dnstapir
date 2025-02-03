@@ -12,7 +12,7 @@ from .key_resolver import KeyResolver, UrlKeyResolver
 logger = logging.getLogger(__name__)
 
 
-class ResolvedJWKSet(JWKSet):
+class ResolverJWKSet(JWKSet):
     def __init__(self, key_resolver: KeyResolver):
         super().__init__()
         self.key_resolver = key_resolver
@@ -28,23 +28,22 @@ class ResolvedJWKSet(JWKSet):
     def get_keys(self, kid: str) -> list[JWK]:
         return [self.get_key(kid)]
 
-
-def verify_jws_with_keys(jws: JWS, keys: JWKSet) -> JWK:
-    """Verify JWS using keys and return key (or raise JWKeyNotFound)"""
-    protected_header: dict[str, str] = json.loads(jws.objects["protected"])
-    if kid := protected_header.get("kid"):
-        logger.debug("Signature by kid=%s", kid)
-        for key in keys.get_keys(kid):
-            try:
-                jws.verify(key=key)
-                if not hasattr(key, "kid"):
-                    key.kid = kid
-                return key
-            except InvalidJWSSignature:
-                pass
-    else:
-        logger.debug("Signature without kid")
-    raise JWKeyNotFound
+    def verify_jws(self, jws: JWS) -> JWK:
+        """Verify JWS and return verified key (or raise JWKeyNotFound)"""
+        protected_header: dict[str, str] = json.loads(jws.objects["protected"])
+        if kid := protected_header.get("kid"):
+            logger.debug("Signature by kid=%s", kid)
+            for key in self.get_keys(kid):
+                try:
+                    jws.verify(key=key)
+                    if not hasattr(key, "kid"):
+                        key.kid = kid
+                    return key
+                except InvalidJWSSignature:
+                    pass
+        else:
+            logger.debug("Signature without kid")
+        raise JWKeyNotFound
 
 
 def main() -> None:
@@ -66,11 +65,11 @@ def main() -> None:
     client_database_base_url = urljoin(args.nodeman, "/api/v1/node/{key_id}/public_key")
 
     key_resolver = UrlKeyResolver(client_database_base_url=client_database_base_url)
-    keyset = ResolvedJWKSet(key_resolver=key_resolver)
+    keyset = ResolverJWKSet(key_resolver=key_resolver)
 
     jws = JWS()
     jws.deserialize(args.message)
-    key = verify_jws_with_keys(jws, keyset)
+    key = keyset.verify_jws(jws)
 
     logging.info("Found JWK: %s", json.dumps(key.export(as_dict=True)))
     logging.info("Message: %s", jws.payload.decode())
