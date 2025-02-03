@@ -16,9 +16,14 @@ class ResolvedJWKSet(JWKSet):
     def __init__(self, key_resolver: KeyResolver):
         super().__init__()
         self.key_resolver = key_resolver
+        self._cache: dict[str, JWK] = {}
 
     def get_key(self, kid: str) -> JWK:
-        return JWK.from_pyca(self.key_resolver.resolve_public_key(kid))
+        if kid in self._cache:
+            return self._cache[kid]
+        key = JWK.from_pyca(self.key_resolver.resolve_public_key(kid))  # type: ignore
+        self._cache[kid] = key
+        return key  # type: ignore
 
     def get_keys(self, kid: str) -> list[JWK]:
         return [self.get_key(kid)]
@@ -26,7 +31,7 @@ class ResolvedJWKSet(JWKSet):
 
 def verify_jws_with_keys(jws: JWS, keys: JWKSet) -> JWK:
     """Verify JWS using keys and return key (or raise JWKeyNotFound)"""
-    protected_header = json.loads(jws.objects["protected"])
+    protected_header: dict[str, str] = json.loads(jws.objects["protected"])
     if kid := protected_header.get("kid"):
         logger.debug("Signature by kid=%s", kid)
         for key in keys.get_keys(kid):
