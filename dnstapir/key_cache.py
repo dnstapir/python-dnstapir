@@ -1,11 +1,12 @@
 import logging
 import time
 from abc import abstractmethod
+from datetime import timedelta
 
 import redis
-from faas_cache_dict import FaaSCacheDict
 from opentelemetry import trace
 from pydantic import BaseModel, Field
+from ttlru_map import TTLMap
 
 tracer = trace.get_tracer("dnstapir.tracer")
 
@@ -57,7 +58,7 @@ class DummyKeyCache(KeyCache):
 class MemoryKeyCache(KeyCache):
     def __init__(self, size: int, ttl: int):
         super().__init__()
-        self.cache = FaaSCacheDict(default_ttl=ttl, max_items=size)
+        self.cache = TTLMap(ttl=timedelta(seconds=ttl), max_size=size)
         self.logger.info("Configured memory key cache size=%d ttl=%d", size, ttl)
 
     def get(self, key: str) -> bytes | None:

@@ -2009,6 +2009,24 @@ tests = ["freezegun (>=0.2.8)", "pretend", "pytest (>=6.0)", "pytest-asyncio (>=
 typing = ["mypy (>=1.4)", "rich", "twisted"]
 
 [[package]]
+name = "ttlru-map"
+version = "1.1.0"
+description = "Custom Mapping with TTL and LRU support."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "ttlru_map-1.1.0-py3-none-any.whl", hash = "sha256:c4b4c9214db94d640a46c82e9764236b0265fb0740d388fa115a826060c27f39"},
+    {file = "ttlru_map-1.1.0.tar.gz", hash = "sha256:97f8b42cbfdf6ab64e9a01356c1d0dd8718b49807314765f60fb9c71799f543c"},
+]
+
+[package.extras]
+benchmarks = ["perfplot (>=0.10,<1.0)"]
+build = ["hatch (>=1.7,<2.0)"]
+docs = ["sphinx (>=7.2,<9.0)"]
+test = ["coverage (>=7.3,<8.0)", "mypy (>=1.13,<2.0)", "pytest (>=8.1,<9.0)"]
+
+[[package]]
 name = "typing-extensions"
 version = "4.12.2"
 description = "Backported and Experimental Type Hints for Python 3.8+"
@@ -2255,4 +2273,4 @@ opentelemetry = ["botocore", "fastapi", "opentelemetry-api", "opentelemetry-expo
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "7a0e7d5a5e6fd47dcf113b2cc3bcfec91c5e5b10db91cc432612c8b2f98d9004"
+content-hash = "7c9b0b828eebd374113b9ae9a01c2c7781206671ce625f25a96657c533b68a4b"
