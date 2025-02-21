@@ -17,10 +17,12 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         with structlog.contextvars.bound_contextvars(request_id=request_id):
             logger.bind(
+                remote_host=request.client.host,
+                remote_port=request.client.port,
                 method=request.method,
                 path=request.url.path,
             ).info(
-                f"Processing {request.method} request to {request.url.path}",
+                f"Processing {request.method} request from {request.client.host} to {request.url.path}",
             )
 
             request.state.start_time = time.perf_counter()
@@ -29,12 +31,14 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             elapsed = time.perf_counter() - request.state.start_time
 
             logger.bind(
-                path=request.url.path,
+                remote_host=request.client.host,
+                remote_port=request.client.port,
                 method=request.method,
+                path=request.url.path,
                 status_code=response.status_code,
                 elapsed=elapsed,
             ).info(
-                f"Processed {request.method} request to {request.url.path} in {elapsed:.3f} seconds",
+                f"Processed {request.method} request from {request.client.host} to {request.url.path} in {elapsed:.3f} seconds",
             )
 
             response.headers["X-Request-ID"] = request_id
