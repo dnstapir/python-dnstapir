@@ -15,10 +15,10 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         logger = structlog.get_logger()
         request_id = str(uuid.uuid4())
 
-        remote = (
+        remote: dict[str, str | int | None] = (
             {
-                "client_host": str(request.client.host),
-                "client_port": str(request.client.port),
+                "client_host": request.client.host,
+                "client_port": request.client.port or None,
             }
             if request.client
             else {}
