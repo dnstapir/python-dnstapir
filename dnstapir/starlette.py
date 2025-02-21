@@ -15,10 +15,18 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         logger = structlog.get_logger()
         request_id = str(uuid.uuid4())
 
+        remote = (
+            {
+                "client_host": str(request.client.host),
+                "client_port": str(request.client.port),
+            }
+            if request.client
+            else {}
+        )
+
         with structlog.contextvars.bound_contextvars(request_id=request_id):
             logger.bind(
-                remote_host=request.client.host,
-                remote_port=request.client.port,
+                **remote,
                 method=request.method,
                 path=request.url.path,
             ).info(
@@ -31,8 +39,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             elapsed = time.perf_counter() - request.state.start_time
 
             logger.bind(
-                remote_host=request.client.host,
-                remote_port=request.client.port,
+                **remote,
                 method=request.method,
                 path=request.url.path,
                 status_code=response.status_code,
