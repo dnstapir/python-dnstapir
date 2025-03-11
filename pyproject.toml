@@ -30,7 +30,7 @@ ruff = ">=0.7.0"
 pytest-ruff = "^0.4.1"
 fakeredis = "^2.25.1"
 pytest-httpx = "^0.34.0"
-aiobotocore = "^2.19.0"
+aiobotocore = "^2.21.1"
 uvicorn = "^0.34.0"
 
 [tool.poetry.extras]
