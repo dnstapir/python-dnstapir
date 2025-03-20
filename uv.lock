@@ -270,30 +270,38 @@ wheels = [
 
 [[package]]
 name = "dnstapir"
-version = "1.6.0"
+version = "1.5.1"
 source = { editable = "." }
 dependencies = [
-    { name = "botocore" },
+    { name = "structlog" },
+]
+
+[package.optional-dependencies]
+keymanager = [
     { name = "cryptography" },
-    { name = "fastapi" },
     { name = "httpx" },
     { name = "jwcrypto" },
+    { name = "opentelemetry-api" },
+    { name = "pydantic" },
+    { name = "pymongo" },
+    { name = "redis" },
+    { name = "ttlru-map" },
+]
+opentelemetry = [
+    { name = "botocore" },
+    { name = "fastapi" },
     { name = "opentelemetry-api" },
     { name = "opentelemetry-exporter-otlp" },
     { name = "opentelemetry-instrumentation-botocore" },
     { name = "opentelemetry-instrumentation-fastapi" },
     { name = "opentelemetry-instrumentation-pymongo" },
     { name = "opentelemetry-instrumentation-redis" },
-    { name = "pydantic" },
-    { name = "pymongo" },
-    { name = "redis" },
-    { name = "structlog" },
-    { name = "ttlru-map" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "aiobotocore" },
+    { name = "dnstapir", extra = ["keymanager", "opentelemetry"] },
     { name = "fakeredis" },
     { name = "pytest" },
     { name = "pytest-httpx" },
@@ -304,27 +312,30 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "botocore", specifier = ">=1.36.1" },
-    { name = "cryptography", specifier = ">=44.0.2" },
-    { name = "fastapi", specifier = ">=0.115.11" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "jwcrypto", specifier = ">=1.5.6" },
-    { name = "opentelemetry-api", specifier = ">=1.31.0" },
-    { name = "opentelemetry-exporter-otlp", specifier = ">=1.31.0" },
-    { name = "opentelemetry-instrumentation-botocore", specifier = ">=0.52b0" },
-    { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.52b0" },
-    { name = "opentelemetry-instrumentation-pymongo", specifier = ">=0.52b0" },
-    { name = "opentelemetry-instrumentation-redis", specifier = ">=0.52b0" },
-    { name = "pydantic", specifier = ">=2.10.6" },
-    { name = "pymongo", specifier = ">=4.11.3" },
-    { name = "redis", specifier = ">=5.2.1" },
+    { name = "botocore", marker = "extra == 'opentelemetry'", specifier = ">=1.36.1" },
+    { name = "cryptography", marker = "extra == 'keymanager'", specifier = ">=44.0.2" },
+    { name = "fastapi", marker = "extra == 'opentelemetry'", specifier = ">=0.115.11" },
+    { name = "httpx", marker = "extra == 'keymanager'", specifier = ">=0.28.1" },
+    { name = "jwcrypto", marker = "extra == 'keymanager'", specifier = ">=1.5.6" },
+    { name = "opentelemetry-api", marker = "extra == 'keymanager'", specifier = ">=1.31.0" },
+    { name = "opentelemetry-api", marker = "extra == 'opentelemetry'", specifier = ">=1.31.0" },
+    { name = "opentelemetry-exporter-otlp", marker = "extra == 'opentelemetry'", specifier = ">=1.31.0" },
+    { name = "opentelemetry-instrumentation-botocore", marker = "extra == 'opentelemetry'", specifier = ">=0.52b0" },
+    { name = "opentelemetry-instrumentation-fastapi", marker = "extra == 'opentelemetry'", specifier = ">=0.52b0" },
+    { name = "opentelemetry-instrumentation-pymongo", marker = "extra == 'opentelemetry'", specifier = ">=0.52b0" },
+    { name = "opentelemetry-instrumentation-redis", marker = "extra == 'opentelemetry'", specifier = ">=0.52b0" },
+    { name = "pydantic", marker = "extra == 'keymanager'", specifier = ">=2.10.6" },
+    { name = "pymongo", marker = "extra == 'keymanager'", specifier = ">=4.11.3" },
+    { name = "redis", marker = "extra == 'keymanager'", specifier = ">=5.2.1" },
     { name = "structlog", specifier = ">=25.2.0" },
-    { name = "ttlru-map", specifier = ">=1.1.0" },
+    { name = "ttlru-map", marker = "extra == 'keymanager'", specifier = ">=1.1.0" },
 ]
+provides-extras = ["keymanager", "opentelemetry"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "aiobotocore", specifier = ">=2.19.0" },
+    { name = "dnstapir", extras = ["keymanager", "opentelemetry"] },
     { name = "fakeredis", specifier = ">=2.27.0" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest-httpx", specifier = ">=0.35.0" },
