@@ -1,16 +1,16 @@
 all:
 
 test:
-	poetry run pytest --ruff --ruff-format
+	uv run pytest --ruff --ruff-format
 
 lint:
-	poetry run ruff check .
+	uv run ruff check .
 
 reformat:
-	poetry run ruff check --select I --fix .
-	poetry run ruff format .
+	uv run ruff check --select I --fix .
+	uv run ruff format .
 
 clean:
 
 realclean: clean
-	poetry env remove --all
+	rm -fr .venv
