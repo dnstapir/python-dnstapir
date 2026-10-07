@@ -85,7 +85,7 @@ class RedisKeyCache(KeyCache):
         with tracer.start_as_current_span("redis_key_cache_get"):
             res = self.redis_client.get(name=key)
         self.logger.debug("Cache GET %s (%s)", key, "hit" if res else "miss")
-        if self.memory_cache:
+        if res and self.memory_cache:
             self.memory_cache.set(key, res)
         return res
 
