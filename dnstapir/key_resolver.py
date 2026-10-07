@@ -65,6 +65,7 @@ class CacheKeyResolver(KeyResolver):
                     return res
             else:
                 public_key_pem = self.get_public_key_pem(key_id)
+        public_key_get_counter.add(1)
         return load_pem_public_key(public_key_pem)
 
 
