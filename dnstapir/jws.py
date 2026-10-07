@@ -53,7 +53,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="JWS Verifier")
 
-    parser.add_argument("--nodeman", help="Nodeman API")
+    parser.add_argument("--nodeman", help="Nodeman API", required=True)
     parser.add_argument("--debug", action="store_true", help="Enable debugging")
     parser.add_argument("message", help="JWS message")
 
