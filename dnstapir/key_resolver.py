@@ -1,6 +1,6 @@
 import logging
 import re
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
@@ -29,7 +29,7 @@ def key_resolver_from_client_database(client_database: str, key_cache: KeyCache 
         return FileKeyResolver(client_database_directory=client_database, key_cache=key_cache)
 
 
-class KeyResolver:
+class KeyResolver(ABC):
     def __init__(self):
         self.logger = logging.getLogger(__name__).getChild(self.__class__.__name__)
         self.key_id_validator = KEY_ID_VALIDATOR
