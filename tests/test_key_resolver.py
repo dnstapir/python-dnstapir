@@ -6,6 +6,7 @@ import respx
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
+from dnstapir.key_cache import MemoryKeyCache
 from dnstapir.key_resolver import FileKeyResolver, UrlKeyResolver
 
 
@@ -57,6 +58,49 @@ def test_url_key_resolver(httpx2_mock: respx.Router):
 
     with pytest.raises(KeyError):
         _ = resolver.resolve_public_key("unknown")
+
+
+class RecordingKeyCache(MemoryKeyCache):
+    def __init__(self):
+        super().__init__(size=100, ttl=60)
+        self.lookups: list[str] = []
+
+    def get(self, key: str) -> bytes | None:
+        self.lookups.append(key)
+        return super().get(key)
+
+
+@pytest.mark.parametrize("key_id", ["xyzzy\n", "..", ".pem", "../etc/passwd", "a/b", "", "🔐"])
+def test_url_key_resolver_invalid_key_id(httpx2_mock: respx.Router, key_id: str):
+    key_cache = RecordingKeyCache()
+    resolver = UrlKeyResolver(client_database_base_url="https://keys", key_cache=key_cache)
+
+    with pytest.raises(ValueError):
+        _ = resolver.resolve_public_key(key_id)
+
+    # Invalid key IDs must be rejected before reaching the cache or the network
+    assert key_cache.lookups == []
+    assert not httpx2_mock.calls
+
+
+def test_url_key_resolver_cached(httpx2_mock: respx.Router):
+    key_id = "xyzzy"
+    public_key = ed25519.Ed25519PrivateKey.generate().public_key()
+    public_key_pem = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+
+    route = httpx2_mock.get(f"https://keys/{key_id}.pem").respond(content=public_key_pem)
+
+    key_cache = RecordingKeyCache()
+    resolver = UrlKeyResolver(client_database_base_url="https://keys", key_cache=key_cache)
+
+    assert resolver.resolve_public_key(key_id) == public_key
+    assert resolver.resolve_public_key(key_id) == public_key
+
+    # Second lookup is served from the cache
+    assert key_cache.lookups == [key_id, key_id]
+    assert route.call_count == 1
 
 
 def test_url_key_resolver_pattern(httpx2_mock: respx.Router):
