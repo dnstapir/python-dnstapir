@@ -20,7 +20,7 @@ tracer = trace.get_tracer("dnstapir.tracer")
 meter = metrics.get_meter("dnstapir.meter")
 
 public_key_get_counter = meter.create_counter(
-    "aggregates.public_key_get_counter",
+    "dnstapir.public_key_get_counter",
     description="The number of public key lookups",
 )
 
