@@ -54,7 +54,7 @@ class CacheKeyResolver(KeyResolver):
         self.key_cache = key_cache
 
     @abstractmethod
-    def get_public_key_pem(self, key_id: str) -> bytes:
+    def _get_public_key_pem(self, key_id: str) -> bytes:
         pass
 
     def resolve_public_key(self, key_id: str) -> PublicKeyTypes:
@@ -64,14 +64,14 @@ class CacheKeyResolver(KeyResolver):
             if self.key_cache:
                 public_key_pem = self.key_cache.get(key_id)
                 if not public_key_pem:
-                    public_key_pem = self.get_public_key_pem(key_id)
+                    public_key_pem = self._get_public_key_pem(key_id)
                     # Load the public key from PEM format before caching and returning it
                     res = load_pem_public_key(public_key_pem)
                     self.key_cache.set(key_id, public_key_pem)
                     public_key_get_counter.add(1)
                     return res
             else:
-                public_key_pem = self.get_public_key_pem(key_id)
+                public_key_pem = self._get_public_key_pem(key_id)
         return load_pem_public_key(public_key_pem)
 
 
@@ -80,7 +80,7 @@ class FileKeyResolver(CacheKeyResolver):
         super().__init__(key_cache=key_cache)
         self.client_database_directory = client_database_directory
 
-    def get_public_key_pem(self, key_id: str) -> bytes:
+    def _get_public_key_pem(self, key_id: str) -> bytes:
         with tracer.start_as_current_span("get_public_key_pem_from_file"):
             filename = Path(self.client_database_directory) / f"{key_id}.pem"
             self.logger.debug("Fetching public key for %s from %s", key_id, filename)
@@ -107,7 +107,7 @@ class UrlKeyResolver(CacheKeyResolver):
             if urlparse(test_url).scheme not in ("http", "https"):
                 raise ValueError(f"Invalid URL pattern: {self.client_database_base_url}")
 
-    def get_public_key_pem(self, key_id: str) -> bytes:
+    def _get_public_key_pem(self, key_id: str) -> bytes:
         with tracer.start_as_current_span("get_public_key_pem_from_url"):
             if self.key_id_pattern in self.client_database_base_url:
                 public_key_url = self.client_database_base_url.replace(self.key_id_pattern, key_id)
