@@ -556,6 +556,7 @@ opentelemetry = [
     { name = "opentelemetry-instrumentation-httpx" },
     { name = "opentelemetry-instrumentation-pymongo" },
     { name = "opentelemetry-instrumentation-redis" },
+    { name = "starlette" },
 ]
 
 [package.dev-dependencies]
@@ -588,6 +589,7 @@ requires-dist = [
     { name = "pydantic", marker = "extra == 'keymanager'", specifier = ">=2.10.6" },
     { name = "pymongo", marker = "extra == 'keymanager'", specifier = ">=4.11.3" },
     { name = "redis", marker = "extra == 'keymanager'", specifier = ">=5.2.1" },
+    { name = "starlette", marker = "extra == 'opentelemetry'", specifier = ">=1.7.0" },
     { name = "structlog", specifier = ">=25.2.0" },
     { name = "ttlru-map", marker = "extra == 'keymanager'", specifier = ">=1.1.0" },
 ]
