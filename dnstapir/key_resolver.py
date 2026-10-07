@@ -58,6 +58,7 @@ class CacheKeyResolver(KeyResolver):
         pass
 
     def resolve_public_key(self, key_id: str) -> PublicKeyTypes:
+        self.validate_key_id(key_id)
         public_key_resolve_counter.add(1)
         with tracer.start_as_current_span("resolve_public_key"):
             if self.key_cache:
@@ -81,7 +82,6 @@ class FileKeyResolver(CacheKeyResolver):
 
     def get_public_key_pem(self, key_id: str) -> bytes:
         with tracer.start_as_current_span("get_public_key_pem_from_file"):
-            self.validate_key_id(key_id)
             filename = Path(self.client_database_directory) / f"{key_id}.pem"
             self.logger.debug("Fetching public key for %s from %s", key_id, filename)
             try:
@@ -109,8 +109,6 @@ class UrlKeyResolver(CacheKeyResolver):
 
     def get_public_key_pem(self, key_id: str) -> bytes:
         with tracer.start_as_current_span("get_public_key_pem_from_url"):
-            self.validate_key_id(key_id)
-
             if self.key_id_pattern in self.client_database_base_url:
                 public_key_url = self.client_database_base_url.replace(self.key_id_pattern, key_id)
             else:
