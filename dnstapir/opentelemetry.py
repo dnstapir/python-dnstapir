@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_OTLP_SERVICE_NAME = "dnstapir"
 
+_configured = False
+
 
 class OtlpSettings(BaseModel):
     service_name: str | None = None
@@ -33,27 +35,40 @@ def configure_opentelemetry(
     service_name: str | None = None,
     fastapi_app: FastAPI | None = None,
 ) -> None:
-    service_name = settings.service_name or service_name or DEFAULT_OTLP_SERVICE_NAME
-    resource = Resource(attributes={SERVICE_NAME: service_name})
+    global _configured
 
-    trace_provider = TracerProvider(resource=resource)
-    processor = BatchSpanProcessor(
-        OTLPSpanExporter(endpoint=str(settings.spans_endpoint), insecure=settings.insecure)
-        if settings.spans_endpoint
-        else ConsoleSpanExporter()
-    )
-    trace_provider.add_span_processor(processor)
-    trace.set_tracer_provider(trace_provider)
-    logger.debug("OTLP spans via %s", settings.spans_endpoint or "console")
+    # Providers can only be set once per process, so only configure once
+    if not _configured:
+        service_name = settings.service_name or service_name or DEFAULT_OTLP_SERVICE_NAME
+        resource = Resource(attributes={SERVICE_NAME: service_name})
 
-    reader = PeriodicExportingMetricReader(
-        OTLPMetricExporter(endpoint=str(settings.metrics_endpoint), insecure=settings.insecure)
-        if settings.metrics_endpoint
-        else ConsoleMetricExporter()
-    )
-    meter_provider = MeterProvider(resource=resource, metric_readers=[reader])
-    metrics.set_meter_provider(meter_provider)
-    logger.debug("OTLP metrics via %s", settings.metrics_endpoint or "console")
+        trace_provider = TracerProvider(resource=resource)
+        processor = BatchSpanProcessor(
+            OTLPSpanExporter(endpoint=str(settings.spans_endpoint), insecure=settings.insecure)
+            if settings.spans_endpoint
+            else ConsoleSpanExporter()
+        )
+        trace_provider.add_span_processor(processor)
+        trace.set_tracer_provider(trace_provider)
+        logger.debug("OTLP spans via %s", settings.spans_endpoint or "console")
+
+        reader = PeriodicExportingMetricReader(
+            OTLPMetricExporter(endpoint=str(settings.metrics_endpoint), insecure=settings.insecure)
+            if settings.metrics_endpoint
+            else ConsoleMetricExporter()
+        )
+        meter_provider = MeterProvider(resource=resource, metric_readers=[reader])
+        metrics.set_meter_provider(meter_provider)
+        logger.debug("OTLP metrics via %s", settings.metrics_endpoint or "console")
+
+        PymongoInstrumentor().instrument()
+        BotocoreInstrumentor().instrument()
+        RedisInstrumentor().instrument()
+        HTTPX2ClientInstrumentor().instrument()
+        _configured = True
+        logger.info("OpenTelemetry configured")
+    else:
+        logger.debug("OpenTelemetry already configured, ignoring settings")
 
     if fastapi_app:
         FastAPIInstrumentor.instrument_app(
@@ -64,9 +79,3 @@ def configure_opentelemetry(
                 "tracestate",
             ],
         )
-    PymongoInstrumentor().instrument()
-    BotocoreInstrumentor().instrument()
-    RedisInstrumentor().instrument()
-    HTTPX2ClientInstrumentor().instrument()
-
-    logger.info("OpenTelemetry configured")
