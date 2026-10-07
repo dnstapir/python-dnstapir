@@ -71,10 +71,11 @@ class PublicSuffixList:
 
     def __init__(self) -> None:
         self.trie = Trie()
+        self.httpx_client = httpx2.Client(http2=True)
 
     def load_psl_url(self, url: str) -> None:
         """Load PSL from URL"""
-        response = httpx2.get(
+        response = self.httpx_client.get(
             url,
             headers={
                 "Accept-Encoding": "gzip",
@@ -126,7 +127,7 @@ class PublicSuffixList:
         if not domain:
             raise ValueError
         try:
-            domain = domain.rstrip(".")
+            domain = domain.lower().rstrip(".")
         except AttributeError as exc:
             raise ValueError from exc
         lbls = domain.split(".")
@@ -151,6 +152,6 @@ class PublicSuffixList:
 
     def rdomain(self, rdomain: str) -> tuple[str, str]:
         """Find ICANN and private name cut-off for domain, reverse order process"""
-        lbls = rdomain.split(".")
+        lbls = rdomain.lower().split(".")
         c, p = self.trie.search(lbls)
         return (".".join(lbls[0:c]), ".".join(lbls[0:p]))

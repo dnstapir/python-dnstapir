@@ -10,6 +10,7 @@ def test_mozpsl():
     psl.load_psl_url(url=MOZ_PSL)
 
     assert psl.coredomain("www.ck.") == ("ck.", "")
+    assert psl.coredomain("www.SOMETHING.gov.ck.") == ("something.gov.ck.", "")
     assert psl.coredomain("www.something.gov.ck.") == ("something.gov.ck.", "")
     assert psl.coredomain("www.something.or.other.microsoft.com.") == ("microsoft.com.", "")
     assert psl.coredomain("www.something.or.other.microsoft.com.br.") == ("microsoft.com.br.", "")
