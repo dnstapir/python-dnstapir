@@ -19,7 +19,7 @@ public_key_get_counter = meter.create_counter(
     description="The number of public key lookups",
 )
 
-KEY_ID_VALIDATOR = re.compile(r"^[a-zA-Z0-9_\-.]+$")
+KEY_ID_VALIDATOR = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_\-.]*$")
 
 
 def key_resolver_from_client_database(client_database: str, key_cache: KeyCache | None = None):
