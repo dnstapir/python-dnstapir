@@ -24,13 +24,15 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             else {}
         )
 
+        remote_client_host_str = remote.get("client_host") or "UNKNOWN-HOST"
+
         with structlog.contextvars.bound_contextvars(request_id=request_id):
             logger.bind(
                 **remote,
                 method=request.method,
                 path=request.url.path,
             ).info(
-                f"Processing {request.method} request from {request.client.host} to {request.url.path}",
+                f"Processing {request.method} request from {remote_client_host_str} to {request.url.path}",
             )
 
             request.state.start_time = time.perf_counter()
@@ -45,7 +47,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 status_code=response.status_code,
                 elapsed=elapsed,
             ).info(
-                f"Processed {request.method} request from {request.client.host} to {request.url.path} in {elapsed:.3f} seconds",
+                f"Processed {request.method} request from {remote_client_host_str} to {request.url.path} in {elapsed:.3f} seconds",
             )
 
             response.headers["X-Request-ID"] = request_id
