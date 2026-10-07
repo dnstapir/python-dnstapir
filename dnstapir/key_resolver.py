@@ -5,16 +5,11 @@ from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 import httpx
-from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
-from cryptography.hazmat.primitives.asymmetric.ed448 import Ed448PublicKey
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
+from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from opentelemetry import metrics, trace
 
 from .key_cache import KeyCache
-
-PublicKey = Ed25519PublicKey | Ed448PublicKey | EllipticCurvePublicKey | RSAPublicKey
 
 tracer = trace.get_tracer("dnstapir.tracer")
 meter = metrics.get_meter("dnstapir.meter")
@@ -40,7 +35,7 @@ class KeyResolver:
         self.key_id_validator = KEY_ID_VALIDATOR
 
     @abstractmethod
-    def resolve_public_key(self, key_id: str) -> PublicKey:
+    def resolve_public_key(self, key_id: str) -> PublicKeyTypes:
         pass
 
     def validate_key_id(self, key_id: str) -> None:
@@ -57,7 +52,7 @@ class CacheKeyResolver(KeyResolver):
     def get_public_key_pem(self, key_id: str) -> bytes:
         pass
 
-    def resolve_public_key(self, key_id: str):
+    def resolve_public_key(self, key_id: str) -> PublicKeyTypes:
         with tracer.start_as_current_span("resolve_public_key"):
             if self.key_cache:
                 public_key_pem = self.key_cache.get(key_id)
