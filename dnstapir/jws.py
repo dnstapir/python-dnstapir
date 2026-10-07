@@ -16,14 +16,9 @@ class ResolverJWKSet(JWKSet):
     def __init__(self, key_resolver: KeyResolver):
         super().__init__()
         self.key_resolver = key_resolver
-        self._cache: dict[str, JWK] = {}
 
     def get_key(self, kid: str) -> JWK:
-        if kid in self._cache:
-            return self._cache[kid]
-        key = JWK.from_pyca(self.key_resolver.resolve_public_key(kid))  # type: ignore
-        self._cache[kid] = key
-        return key  # type: ignore
+        return JWK.from_pyca(self.key_resolver.resolve_public_key(kid))
 
     def get_keys(self, kid: str) -> list[JWK]:
         return [self.get_key(kid)]
