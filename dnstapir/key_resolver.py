@@ -39,7 +39,7 @@ class KeyResolver(ABC):
         pass
 
     def validate_key_id(self, key_id: str) -> None:
-        if not self.key_id_validator.match(key_id):
+        if not self.key_id_validator.fullmatch(key_id):
             raise ValueError(f"Invalid key_id format: {key_id}")
 
 
