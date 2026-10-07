@@ -58,8 +58,11 @@ class CacheKeyResolver(KeyResolver):
                 public_key_pem = self.key_cache.get(key_id)
                 if not public_key_pem:
                     public_key_pem = self.get_public_key_pem(key_id)
+                    # Load the public key from PEM format before caching and returning it
+                    res = load_pem_public_key(public_key_pem)
                     self.key_cache.set(key_id, public_key_pem)
                     public_key_get_counter.add(1)
+                    return res
             else:
                 public_key_pem = self.get_public_key_pem(key_id)
         return load_pem_public_key(public_key_pem)
