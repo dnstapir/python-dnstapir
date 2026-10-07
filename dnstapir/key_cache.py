@@ -23,13 +23,9 @@ class KeyCacheSettings(BaseModel):
 
 def key_cache_from_settings(settings: KeyCacheSettings):
     if settings.redis:
+        memory_key_cache = MemoryKeyCache(size=settings.size, ttl=settings.ttl) if settings.size else None
         redis_client = redis.StrictRedis(host=settings.redis.host, port=settings.redis.port)
-        redis_key_cache = RedisKeyCache(redis_client=redis_client, ttl=settings.ttl)
-        if settings.size:
-            memory_key_cache = MemoryKeyCache(size=settings.size, ttl=settings.ttl)
-            return CombinedKeyCache([memory_key_cache, redis_key_cache])
-        else:
-            return redis_key_cache
+        return RedisKeyCache(redis_client=redis_client, ttl=settings.ttl, memory_cache=memory_key_cache)
     elif settings.size:
         return MemoryKeyCache(size=settings.size, ttl=settings.ttl)
     else:
@@ -76,13 +72,16 @@ class MemoryKeyCache(KeyCache):
 
 
 class RedisKeyCache(KeyCache):
-    def __init__(self, redis_client: redis.Redis, ttl: int):
+    def __init__(self, redis_client: redis.Redis, ttl: int, memory_cache: MemoryKeyCache | None = None):
         super().__init__()
         self.redis_client = redis_client
         self.ttl = ttl
+        self.memory_cache = memory_cache
         self.logger.info("Configured Redis key cache ttl=%d", ttl)
 
     def get(self, key: str) -> bytes | None:
+        if self.memory_cache and (res := self.memory_cache.get(key)):
+            return res
         with tracer.start_as_current_span("redis_key_cache_get"):
             res = self.redis_client.get(name=key)
         self.logger.debug("Cache GET %s (%s)", key, "hit" if res else "miss")
@@ -92,19 +91,5 @@ class RedisKeyCache(KeyCache):
         self.logger.debug("Cache SET %s", key)
         with tracer.start_as_current_span("redis_key_cache_set"):
             self.redis_client.set(name=key, value=value, ex=self.ttl)
-
-
-class CombinedKeyCache(KeyCache):
-    def __init__(self, caches: list[KeyCache]):
-        super().__init__()
-        self.caches = caches
-
-    def get(self, key: str) -> bytes | None:
-        for cache in self.caches:
-            if res := cache.get(key):
-                return res
-        return None
-
-    def set(self, key: str, value: bytes) -> None:
-        for cache in self.caches:
-            cache.set(key, value)
+        if self.memory_cache:
+            self.memory_cache.set(key, value)
