@@ -33,7 +33,11 @@ class ResolverJWKSet(JWKSet):
                     logger.debug("Signature by kid=%s", kid)
                     try:
                         keys = self.get_keys(kid)
-                    except (KeyError, ValueError):
+                    except KeyError:
+                        logger.debug("Key with kid=%s not found", kid)
+                        continue
+                    except Exception as exc:
+                        logger.debug("Error looking up key with kid=%s: %s", kid, exc, exc_info=exc)
                         continue
                     for key in keys:
                         try:
@@ -45,6 +49,8 @@ class ResolverJWKSet(JWKSet):
                             pass
                 else:
                     logger.debug("Skipping signature without kid")
+            else:
+                logger.debug("No protected header found in signature")
         raise JWKeyNotFound
 
 
