@@ -1,17 +1,17 @@
 import json
 import logging
 
+import respx
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from jwcrypto.jwk import JWK
 from jwcrypto.jws import JWS
-from pytest_httpx import HTTPXMock
 
 from dnstapir.jws import ResolverJWKSet
 from dnstapir.key_resolver import UrlKeyResolver
 
 
-def test_jws_verifier(httpx_mock: HTTPXMock):
+def test_jws_verifier(httpx2_mock: respx.Router):
     """Test JWS verifier"""
 
     logging.basicConfig(level=logging.DEBUG)
@@ -27,7 +27,7 @@ def test_jws_verifier(httpx_mock: HTTPXMock):
     public_key_pem = public_key.public_bytes(
         encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    httpx_mock.add_response(url=f"https://keys/api/v1/node/{key_id}/public_key", content=public_key_pem)
+    httpx2_mock.get(f"https://keys/api/v1/node/{key_id}/public_key").respond(content=public_key_pem)
 
     # Create message
     payload = {"hello": "world"}

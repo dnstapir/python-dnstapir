@@ -6,6 +6,7 @@ from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExp
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.botocore import BotocoreInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.httpx import HTTPX2ClientInstrumentor
 from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
 from opentelemetry.instrumentation.redis import RedisInstrumentor
 from opentelemetry.sdk.metrics import MeterProvider
@@ -66,5 +67,6 @@ def configure_opentelemetry(
     PymongoInstrumentor().instrument()
     BotocoreInstrumentor().instrument()
     RedisInstrumentor().instrument()
+    HTTPX2ClientInstrumentor().instrument()
 
     logger.info("OpenTelemetry configured")

@@ -1,6 +1,6 @@
 import io
 
-import httpx
+import httpx2
 
 
 class TrieNode:
@@ -74,7 +74,7 @@ class PublicSuffixList:
 
     def load_psl_url(self, url: str) -> None:
         """Load PSL from URL"""
-        response = httpx.get(
+        response = httpx2.get(
             url,
             headers={
                 "Accept-Encoding": "gzip",

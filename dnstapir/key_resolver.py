@@ -4,7 +4,7 @@ from abc import abstractmethod
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
-import httpx
+import httpx2
 from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from opentelemetry import metrics, trace
@@ -87,7 +87,7 @@ class UrlKeyResolver(CacheKeyResolver):
         super().__init__(key_cache=key_cache)
 
         self.client_database_base_url = client_database_base_url
-        self._httpx_client: httpx.Client | None = None
+        self._httpx_client: httpx2.Client | None = None
         self.key_id_pattern = "{key_id}"
 
         if urlparse(self.client_database_base_url).scheme not in ("http", "https"):
@@ -115,13 +115,13 @@ class UrlKeyResolver(CacheKeyResolver):
                 response = self.httpx_client.get(public_key_url)
                 response.raise_for_status()
                 return response.content
-            except httpx.HTTPError as exc:
+            except httpx2.HTTPError as exc:
                 raise KeyError(key_id) from exc
 
     @property
-    def httpx_client(self) -> httpx.Client:
+    def httpx_client(self) -> httpx2.Client:
         if self._httpx_client is None:
-            self._httpx_client = httpx.Client(headers={"Accept": "application/x-pem-file"})
+            self._httpx_client = httpx2.Client(http2=True, headers={"Accept": "application/x-pem-file"})
         return self._httpx_client
 
     def __enter__(self):

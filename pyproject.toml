@@ -6,7 +6,7 @@ authors = [{name="Jakob Schlyter", email = "jakob@kirei.se"}]
 readme = "README.md"
 requires-python = ">=3.13,<4.0"
 dependencies = [
-    "structlog>=25.2.0"
+    "structlog>=25.2.0",
 ]
 
 [project.urls]
@@ -15,7 +15,7 @@ repository = "https://github.com/dnstapir/python-dnstapir.git"
 [project.optional-dependencies]
 keymanager = [
     "cryptography>=44.0.2",
-    "httpx>=0.28.1",
+    "httpx2[http2]>=2.13.1",
     "jwcrypto>=1.5.6",
     "opentelemetry-api>=1.31.0",
     "pydantic>=2.10.6",
@@ -32,6 +32,7 @@ opentelemetry = [
     "opentelemetry-instrumentation-fastapi>=0.52b0",
     "opentelemetry-instrumentation-pymongo>=0.52b0",
     "opentelemetry-instrumentation-redis>=0.52b0",
+    "opentelemetry-instrumentation-httpx>=0.65b0",
 ]
 
 [dependency-groups]
@@ -40,10 +41,10 @@ dev = [
     "aiobotocore>=2.19.0",
     "fakeredis>=2.27.0",
     "pytest>=8.3.5",
-    "pytest-httpx>=0.35.0",
     "pytest-ruff>=0.4.1",
     "ruff>=0.11.0",
     "uvicorn>=0.34.0",
+    "pytest-httpx2>=1.0.0",
 ]
 
 [tool.setuptools]
