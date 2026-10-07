@@ -19,6 +19,11 @@ public_key_get_counter = meter.create_counter(
     description="The number of public key lookups",
 )
 
+public_key_resolve_counter = meter.create_counter(
+    "dnstapir.public_key_resolve_counter",
+    description="The number of public key resolutions",
+)
+
 KEY_ID_VALIDATOR = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_\-.]*$")
 
 
@@ -53,6 +58,7 @@ class CacheKeyResolver(KeyResolver):
         pass
 
     def resolve_public_key(self, key_id: str) -> PublicKeyTypes:
+        public_key_resolve_counter.add(1)
         with tracer.start_as_current_span("resolve_public_key"):
             if self.key_cache:
                 public_key_pem = self.key_cache.get(key_id)
@@ -65,7 +71,6 @@ class CacheKeyResolver(KeyResolver):
                     return res
             else:
                 public_key_pem = self.get_public_key_pem(key_id)
-        public_key_get_counter.add(1)
         return load_pem_public_key(public_key_pem)
 
 
