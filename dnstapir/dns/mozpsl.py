@@ -71,11 +71,10 @@ class PublicSuffixList:
 
     def __init__(self) -> None:
         self.trie = Trie()
-        self.httpx_client = httpx2.Client(http2=True)
 
     def load_psl_url(self, url: str) -> None:
         """Load PSL from URL"""
-        response = self.httpx_client.get(
+        response = httpx2.Client(http2=True).get(
             url,
             headers={
                 "Accept-Encoding": "gzip",
