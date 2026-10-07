@@ -23,13 +23,16 @@ class KeyCacheSettings(BaseModel):
 
 
 def key_cache_from_settings(settings: KeyCacheSettings):
-    memory_key_cache = MemoryKeyCache(size=settings.size, ttl=settings.ttl)
     if settings.redis:
         redis_client = redis.StrictRedis(host=settings.redis.host, port=settings.redis.port)
         redis_key_cache = RedisKeyCache(redis_client=redis_client, ttl=settings.ttl)
-        return CombinedKeyCache([memory_key_cache, redis_key_cache]) if settings.size else redis_key_cache
+        if settings.size:
+            memory_key_cache = MemoryKeyCache(size=settings.size, ttl=settings.ttl)
+            return CombinedKeyCache([memory_key_cache, redis_key_cache])
+        else:
+            return redis_key_cache
     elif settings.size:
-        return memory_key_cache
+        return MemoryKeyCache(size=settings.size, ttl=settings.ttl)
     else:
         return DummyKeyCache()
 
