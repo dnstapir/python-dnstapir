@@ -27,23 +27,24 @@ class ResolverJWKSet(JWKSet):
         """Verify JWS and return verified key (or raise JWKeyNotFound)"""
 
         for signature in jws.objects.get("signatures", [jws.objects]):
-            protected_header: dict[str, str] = json.loads(signature["protected"])
-            if kid := protected_header.get("kid"):
-                logger.debug("Signature by kid=%s", kid)
-                try:
-                    keys = self.get_keys(kid)
-                except KeyError:
-                    continue
-                for key in keys:
+            if protected_header_str := signature.get("protected"):
+                protected_header: dict[str, str] = json.loads(protected_header_str)
+                if kid := protected_header.get("kid"):
+                    logger.debug("Signature by kid=%s", kid)
                     try:
-                        jws.verify(key=key)
-                        if not hasattr(key, "kid"):
-                            key.kid = kid
-                        return key
-                    except InvalidJWSSignature:
-                        pass
-            else:
-                logger.debug("Skipping signature without kid")
+                        keys = self.get_keys(kid)
+                    except (KeyError, ValueError):
+                        continue
+                    for key in keys:
+                        try:
+                            jws.verify(key=key)
+                            if not hasattr(key, "kid"):
+                                key.kid = kid
+                            return key
+                        except InvalidJWSSignature:
+                            pass
+                else:
+                    logger.debug("Skipping signature without kid")
         raise JWKeyNotFound
 
 
