@@ -1,6 +1,6 @@
 import logging
 import time
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from datetime import timedelta
 
 import redis
@@ -34,7 +34,7 @@ def key_cache_from_settings(settings: KeyCacheSettings):
         return DummyKeyCache()
 
 
-class KeyCache:
+class KeyCache(ABC):
     def __init__(self):
         self.logger = logging.getLogger(__name__).getChild(self.__class__.__name__)
 
