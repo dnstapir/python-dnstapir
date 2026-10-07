@@ -1,5 +1,4 @@
 import logging
-import time
 from abc import ABC, abstractmethod
 from datetime import timedelta
 
@@ -91,9 +90,8 @@ class RedisKeyCache(KeyCache):
 
     def set(self, key: str, value: bytes) -> None:
         self.logger.debug("Cache SET %s", key)
-        expires_at = int(time.time()) + self.ttl
         with tracer.start_as_current_span("redis_key_cache_set"):
-            self.redis_client.set(name=key, value=value, exat=expires_at)
+            self.redis_client.set(name=key, value=value, ex=self.ttl)
 
 
 class CombinedKeyCache(KeyCache):
