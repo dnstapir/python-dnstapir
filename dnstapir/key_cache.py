@@ -95,6 +95,7 @@ class RedisKeyCache(KeyCache):
 
 class CombinedKeyCache(KeyCache):
     def __init__(self, caches: list[KeyCache]):
+        super().__init__()
         self.caches = caches
 
     def get(self, key: str) -> bytes | None:
