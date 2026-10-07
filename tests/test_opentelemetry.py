@@ -1,7 +1,16 @@
+import pytest
 from fastapi import FastAPI
 from opentelemetry import metrics, trace
 
 from dnstapir.opentelemetry import OtlpSettings, configure_opentelemetry
+
+
+@pytest.fixture(scope="module", autouse=True)
+def shutdown_providers():
+    """Flush console exporters while pytest's output capture is still open"""
+    yield
+    trace.get_tracer_provider().shutdown()
+    metrics.get_meter_provider().shutdown()
 
 
 def test_telemetry():
