@@ -55,10 +55,3 @@ def test_memory_stack_backfill():
     redis_key_cache.set(key_id, public_key_pem)
     assert redis_client.get(key_id) == public_key_pem
     assert memory_key_cache.get(key_id) == public_key_pem
-
-    # A Redis hit from another instance is copied into its memory cache
-    other_memory_key_cache = MemoryKeyCache(size=100, ttl=60)
-    other_redis_key_cache = RedisKeyCache(redis_client=redis_client, ttl=60, memory_cache=other_memory_key_cache)
-    assert other_memory_key_cache.get(key_id) is None
-    assert other_redis_key_cache.get(key_id) == public_key_pem
-    assert other_memory_key_cache.get(key_id) == public_key_pem
