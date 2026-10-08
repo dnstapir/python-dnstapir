@@ -32,7 +32,52 @@ def test_jws_verifier(httpx2_mock: respx.Router):
     # Create message
     payload = {"hello": "world"}
     client_jws = JWS(payload=json.dumps(payload))
-    client_jws.add_signature(key=JWK.from_pyca(private_key), alg=alg, protected={"kid": key_id, "alg": alg})
+    client_jws.add_signature(
+        key=JWK.from_pyca(private_key),
+        alg=alg,
+        protected={"kid": key_id, "alg": alg},
+    )
+    message = client_jws.serialize()
+
+    # Set up key resolver
+    client_database_base_url = "https://keys/api/v1/node/{key_id}/public_key"
+    key_resolver = UrlKeyResolver(client_database_base_url=client_database_base_url)
+    keyset = ResolverJWKSet(key_resolver=key_resolver)
+
+    # Verify message (public key lookup via resolver)
+    jws = JWS()
+    jws.deserialize(message)
+    verified_jwk = keyset.verify_jws(jws)
+    assert verified_jwk.thumbprint() == public_jwk.thumbprint()
+
+
+def test_jws_verifier_unprotected_alg(httpx2_mock: respx.Router):
+    """Test JWS verifier"""
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    # Create key
+    key_id = "xyzzy"
+    private_key = ed25519.Ed25519PrivateKey.generate()
+    public_key = private_key.public_key()
+    public_jwk = JWK.from_pyca(public_key)
+    alg = "EdDSA"
+
+    # Mock key server response
+    public_key_pem = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    httpx2_mock.get(f"https://keys/api/v1/node/{key_id}/public_key").respond(content=public_key_pem)
+
+    # Create message
+    payload = {"hello": "world"}
+    client_jws = JWS(payload=json.dumps(payload))
+    client_jws.add_signature(
+        key=JWK.from_pyca(private_key),
+        alg=alg,
+        protected={"kid": key_id},
+        header={"alg": alg},
+    )
     message = client_jws.serialize()
 
     # Set up key resolver

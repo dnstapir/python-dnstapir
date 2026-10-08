@@ -27,9 +27,12 @@ class ResolverJWKSet(JWKSet):
         """Verify JWS and return verified key (or raise JWKeyNotFound)"""
 
         for signature in jws.objects.get("signatures", [jws.objects]):
+            unprotected_header = signature.get("header", {})
             if protected_header_str := signature.get("protected"):
                 protected_header: dict[str, str] = json.loads(protected_header_str)
-                if (kid := protected_header.get("kid")) and (alg := protected_header.get("alg")):
+                if (kid := protected_header.get("kid")) and (
+                    alg := protected_header.get("alg", unprotected_header.get("alg"))
+                ):
                     logger.debug("Signature by kid=%s alg=%s", kid, alg)
                     try:
                         keys = self.get_keys(kid)
