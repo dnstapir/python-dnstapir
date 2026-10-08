@@ -11,6 +11,8 @@ from opentelemetry import metrics, trace
 
 from .key_cache import KeyCache
 
+type PublicKey = PublicKeyTypes
+
 tracer = trace.get_tracer("dnstapir.tracer")
 meter = metrics.get_meter("dnstapir.meter")
 
