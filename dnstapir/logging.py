@@ -9,6 +9,8 @@ from structlog.types import EventDict, Processor
 
 VALID_LOG_LEVELS = set(["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"])
 
+HANDLER_NAME = "dnstapir"
+
 
 def drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
     """
@@ -67,9 +69,13 @@ def setup_logging(json_logs: bool = False, log_level: str = "INFO") -> None:
     )
 
     # Reconfigure the root logger to use our structlog formatter, effectively emitting the logs via structlog
+    # Replace any handler from a previous call to avoid duplicate log lines
     handler = logging.StreamHandler()
+    handler.set_name(HANDLER_NAME)
     handler.setFormatter(formatter)
     root_logger = logging.getLogger()
+    for existing in [h for h in root_logger.handlers if h.get_name() == HANDLER_NAME]:
+        root_logger.removeHandler(existing)
     root_logger.addHandler(handler)
     root_logger.setLevel(log_level.upper())
 

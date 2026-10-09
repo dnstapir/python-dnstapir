@@ -1,30 +1,32 @@
 import logging
 import re
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
-import httpx
-from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
-from cryptography.hazmat.primitives.asymmetric.ed448 import Ed448PublicKey
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
+import httpx2
+from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from opentelemetry import metrics, trace
 
 from .key_cache import KeyCache
 
-PublicKey = Ed25519PublicKey | Ed448PublicKey | EllipticCurvePublicKey | RSAPublicKey
+type PublicKey = PublicKeyTypes
 
 tracer = trace.get_tracer("dnstapir.tracer")
 meter = metrics.get_meter("dnstapir.meter")
 
 public_key_get_counter = meter.create_counter(
-    "aggregates.public_key_get_counter",
+    "dnstapir.public_key_get_counter",
     description="The number of public key lookups",
 )
 
-KEY_ID_VALIDATOR = re.compile(r"^[a-zA-Z0-9_\-.]+$")
+public_key_resolve_counter = meter.create_counter(
+    "dnstapir.public_key_resolve_counter",
+    description="The number of public key resolutions",
+)
+
+KEY_ID_VALIDATOR = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_\-.]*$")
 
 
 def key_resolver_from_client_database(client_database: str, key_cache: KeyCache | None = None):
@@ -34,17 +36,17 @@ def key_resolver_from_client_database(client_database: str, key_cache: KeyCache 
         return FileKeyResolver(client_database_directory=client_database, key_cache=key_cache)
 
 
-class KeyResolver:
+class KeyResolver(ABC):
     def __init__(self):
         self.logger = logging.getLogger(__name__).getChild(self.__class__.__name__)
         self.key_id_validator = KEY_ID_VALIDATOR
 
     @abstractmethod
-    def resolve_public_key(self, key_id: str) -> PublicKey:
+    def resolve_public_key(self, key_id: str) -> PublicKeyTypes:
         pass
 
     def validate_key_id(self, key_id: str) -> None:
-        if not self.key_id_validator.match(key_id):
+        if not self.key_id_validator.fullmatch(key_id):
             raise ValueError(f"Invalid key_id format: {key_id}")
 
 
@@ -54,19 +56,24 @@ class CacheKeyResolver(KeyResolver):
         self.key_cache = key_cache
 
     @abstractmethod
-    def get_public_key_pem(self, key_id: str) -> bytes:
+    def _get_public_key_pem(self, key_id: str) -> bytes:
         pass
 
-    def resolve_public_key(self, key_id: str):
+    def resolve_public_key(self, key_id: str) -> PublicKeyTypes:
+        self.validate_key_id(key_id)
+        public_key_resolve_counter.add(1)
         with tracer.start_as_current_span("resolve_public_key"):
             if self.key_cache:
                 public_key_pem = self.key_cache.get(key_id)
                 if not public_key_pem:
-                    public_key_pem = self.get_public_key_pem(key_id)
+                    public_key_pem = self._get_public_key_pem(key_id)
+                    # Load the public key from PEM format before caching and returning it
+                    res = load_pem_public_key(public_key_pem)
                     self.key_cache.set(key_id, public_key_pem)
                     public_key_get_counter.add(1)
+                    return res
             else:
-                public_key_pem = self.get_public_key_pem(key_id)
+                public_key_pem = self._get_public_key_pem(key_id)
         return load_pem_public_key(public_key_pem)
 
 
@@ -75,9 +82,8 @@ class FileKeyResolver(CacheKeyResolver):
         super().__init__(key_cache=key_cache)
         self.client_database_directory = client_database_directory
 
-    def get_public_key_pem(self, key_id: str) -> bytes:
+    def _get_public_key_pem(self, key_id: str) -> bytes:
         with tracer.start_as_current_span("get_public_key_pem_from_file"):
-            self.validate_key_id(key_id)
             filename = Path(self.client_database_directory) / f"{key_id}.pem"
             self.logger.debug("Fetching public key for %s from %s", key_id, filename)
             try:
@@ -92,7 +98,7 @@ class UrlKeyResolver(CacheKeyResolver):
         super().__init__(key_cache=key_cache)
 
         self.client_database_base_url = client_database_base_url
-        self._httpx_client: httpx.Client | None = None
+        self._httpx_client: httpx2.Client | None = None
         self.key_id_pattern = "{key_id}"
 
         if urlparse(self.client_database_base_url).scheme not in ("http", "https"):
@@ -103,10 +109,8 @@ class UrlKeyResolver(CacheKeyResolver):
             if urlparse(test_url).scheme not in ("http", "https"):
                 raise ValueError(f"Invalid URL pattern: {self.client_database_base_url}")
 
-    def get_public_key_pem(self, key_id: str) -> bytes:
+    def _get_public_key_pem(self, key_id: str) -> bytes:
         with tracer.start_as_current_span("get_public_key_pem_from_url"):
-            self.validate_key_id(key_id)
-
             if self.key_id_pattern in self.client_database_base_url:
                 public_key_url = self.client_database_base_url.replace(self.key_id_pattern, key_id)
             else:
@@ -120,13 +124,13 @@ class UrlKeyResolver(CacheKeyResolver):
                 response = self.httpx_client.get(public_key_url)
                 response.raise_for_status()
                 return response.content
-            except httpx.HTTPError as exc:
+            except httpx2.HTTPError as exc:
                 raise KeyError(key_id) from exc
 
     @property
-    def httpx_client(self) -> httpx.Client:
+    def httpx_client(self) -> httpx2.Client:
         if self._httpx_client is None:
-            self._httpx_client = httpx.Client(headers={"Accept": "application/x-pem-file"})
+            self._httpx_client = httpx2.Client(http2=True, headers={"Accept": "application/x-pem-file"})
         return self._httpx_client
 
     def __enter__(self):
