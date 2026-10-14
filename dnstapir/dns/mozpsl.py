@@ -1,6 +1,6 @@
 import io
 
-import httpx
+import httpx2
 
 
 class TrieNode:
@@ -74,7 +74,7 @@ class PublicSuffixList:
 
     def load_psl_url(self, url: str) -> None:
         """Load PSL from URL"""
-        response = httpx.get(
+        response = httpx2.get(
             url,
             headers={
                 "Accept-Encoding": "gzip",
@@ -126,7 +126,7 @@ class PublicSuffixList:
         if not domain:
             raise ValueError
         try:
-            domain = domain.rstrip(".")
+            domain = domain.lower().rstrip(".")
         except AttributeError as exc:
             raise ValueError from exc
         lbls = domain.split(".")
@@ -151,6 +151,6 @@ class PublicSuffixList:
 
     def rdomain(self, rdomain: str) -> tuple[str, str]:
         """Find ICANN and private name cut-off for domain, reverse order process"""
-        lbls = rdomain.split(".")
+        lbls = rdomain.lower().split(".")
         c, p = self.trie.search(lbls)
         return (".".join(lbls[0:c]), ".".join(lbls[0:p]))

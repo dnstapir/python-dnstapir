@@ -1,6 +1,5 @@
 import logging
-import time
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from datetime import timedelta
 
 import redis
@@ -23,18 +22,17 @@ class KeyCacheSettings(BaseModel):
 
 
 def key_cache_from_settings(settings: KeyCacheSettings):
-    memory_key_cache = MemoryKeyCache(size=settings.size, ttl=settings.ttl)
     if settings.redis:
+        memory_key_cache = MemoryKeyCache(size=settings.size, ttl=settings.ttl) if settings.size else None
         redis_client = redis.StrictRedis(host=settings.redis.host, port=settings.redis.port)
-        redis_key_cache = RedisKeyCache(redis_client=redis_client, ttl=settings.ttl)
-        return CombinedKeyCache([memory_key_cache, redis_key_cache]) if settings.size else redis_key_cache
+        return RedisKeyCache(redis_client=redis_client, ttl=settings.ttl, memory_cache=memory_key_cache)
     elif settings.size:
-        return memory_key_cache
+        return MemoryKeyCache(size=settings.size, ttl=settings.ttl)
     else:
         return DummyKeyCache()
 
 
-class KeyCache:
+class KeyCache(ABC):
     def __init__(self):
         self.logger = logging.getLogger(__name__).getChild(self.__class__.__name__)
 
@@ -74,13 +72,16 @@ class MemoryKeyCache(KeyCache):
 
 
 class RedisKeyCache(KeyCache):
-    def __init__(self, redis_client: redis.Redis, ttl: int):
+    def __init__(self, redis_client: redis.Redis, ttl: int, memory_cache: MemoryKeyCache | None = None):
         super().__init__()
         self.redis_client = redis_client
         self.ttl = ttl
+        self.memory_cache = memory_cache
         self.logger.info("Configured Redis key cache ttl=%d", ttl)
 
     def get(self, key: str) -> bytes | None:
+        if self.memory_cache and (res := self.memory_cache.get(key)):
+            return res
         with tracer.start_as_current_span("redis_key_cache_get"):
             res = self.redis_client.get(name=key)
         self.logger.debug("Cache GET %s (%s)", key, "hit" if res else "miss")
@@ -88,21 +89,7 @@ class RedisKeyCache(KeyCache):
 
     def set(self, key: str, value: bytes) -> None:
         self.logger.debug("Cache SET %s", key)
-        expires_at = int(time.time()) + self.ttl
         with tracer.start_as_current_span("redis_key_cache_set"):
-            self.redis_client.set(name=key, value=value, exat=expires_at)
-
-
-class CombinedKeyCache(KeyCache):
-    def __init__(self, caches: list[KeyCache]):
-        self.caches = caches
-
-    def get(self, key: str) -> bytes | None:
-        for cache in self.caches:
-            if res := cache.get(key):
-                return res
-        return None
-
-    def set(self, key: str, value: bytes) -> None:
-        for cache in self.caches:
-            cache.set(key, value)
+            self.redis_client.set(name=key, value=value, ex=self.ttl)
+        if self.memory_cache:
+            self.memory_cache.set(key, value)

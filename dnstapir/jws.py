@@ -16,33 +16,44 @@ class ResolverJWKSet(JWKSet):
     def __init__(self, key_resolver: KeyResolver):
         super().__init__()
         self.key_resolver = key_resolver
-        self._cache: dict[str, JWK] = {}
 
     def get_key(self, kid: str) -> JWK:
-        if kid in self._cache:
-            return self._cache[kid]
-        key = JWK.from_pyca(self.key_resolver.resolve_public_key(kid))  # type: ignore
-        self._cache[kid] = key
-        return key  # type: ignore
+        return JWK.from_pyca(self.key_resolver.resolve_public_key(kid))
 
     def get_keys(self, kid: str) -> list[JWK]:
         return [self.get_key(kid)]
 
     def verify_jws(self, jws: JWS) -> JWK:
         """Verify JWS and return verified key (or raise JWKeyNotFound)"""
-        protected_header: dict[str, str] = json.loads(jws.objects["protected"])
-        if kid := protected_header.get("kid"):
-            logger.debug("Signature by kid=%s", kid)
-            for key in self.get_keys(kid):
-                try:
-                    jws.verify(key=key)
-                    if not hasattr(key, "kid"):
-                        key.kid = kid
-                    return key
-                except InvalidJWSSignature:
-                    pass
-        else:
-            logger.debug("Signature without kid")
+
+        for signature in jws.objects.get("signatures", [jws.objects]):
+            unprotected_header = signature.get("header", {})
+            if protected_header_str := signature.get("protected"):
+                protected_header: dict[str, str] = json.loads(protected_header_str)
+                if (kid := protected_header.get("kid")) and (
+                    alg := protected_header.get("alg", unprotected_header.get("alg"))
+                ):
+                    logger.debug("Signature by kid=%s alg=%s", kid, alg)
+                    try:
+                        keys = self.get_keys(kid)
+                    except KeyError:
+                        logger.debug("Key with kid=%s not found", kid)
+                        continue
+                    except Exception as exc:
+                        logger.debug("Error looking up key with kid=%s: %s", kid, exc, exc_info=exc)
+                        continue
+                    for key in keys:
+                        try:
+                            jws.verify(key=key, alg=alg)
+                            if not hasattr(key, "kid"):
+                                key.kid = kid
+                            return key
+                        except InvalidJWSSignature:
+                            pass
+                else:
+                    logger.debug("Skipping signature without kid")
+            else:
+                logger.debug("No protected header found in signature")
         raise JWKeyNotFound
 
 
@@ -51,7 +62,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="JWS Verifier")
 
-    parser.add_argument("--nodeman", help="Nodeman API")
+    parser.add_argument("--nodeman", help="Nodeman API", required=True)
     parser.add_argument("--debug", action="store_true", help="Enable debugging")
     parser.add_argument("message", help="JWS message")
 
