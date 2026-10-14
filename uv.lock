@@ -574,13 +574,13 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "botocore", marker = "extra == 'opentelemetry'", specifier = ">=1.36.1" },
-    { name = "cryptography", marker = "extra == 'keymanager'", specifier = ">=50.0.0" },
+    { name = "cryptography", marker = "extra == 'keymanager'", specifier = ">=50" },
     { name = "fastapi", marker = "extra == 'opentelemetry'", specifier = ">=0.115.11" },
     { name = "httpx2", extras = ["http2"], marker = "extra == 'keymanager'", specifier = ">=2.13.1" },
     { name = "jwcrypto", marker = "extra == 'keymanager'", specifier = ">=1.6.1" },
-    { name = "opentelemetry-api", marker = "extra == 'keymanager'", specifier = ">=1.31.0" },
-    { name = "opentelemetry-api", marker = "extra == 'opentelemetry'", specifier = ">=1.31.0" },
-    { name = "opentelemetry-exporter-otlp", marker = "extra == 'opentelemetry'", specifier = ">=1.31.0" },
+    { name = "opentelemetry-api", marker = "extra == 'keymanager'", specifier = ">=1.45.1" },
+    { name = "opentelemetry-api", marker = "extra == 'opentelemetry'", specifier = ">=1.45.1" },
+    { name = "opentelemetry-exporter-otlp", marker = "extra == 'opentelemetry'", specifier = ">=1.45.1" },
     { name = "opentelemetry-instrumentation-botocore", marker = "extra == 'opentelemetry'", specifier = ">=0.52b0" },
     { name = "opentelemetry-instrumentation-fastapi", marker = "extra == 'opentelemetry'", specifier = ">=0.52b0" },
     { name = "opentelemetry-instrumentation-httpx", marker = "extra == 'opentelemetry'", specifier = ">=0.65b0" },
