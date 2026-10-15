@@ -1,6 +1,6 @@
 [project]
 name = "dnstapir"
-version = "1.5.1"
+dynamic = ["version"]
 description = "DNS TAPIR Python Library"
 authors = [{name="Jakob Schlyter", email = "jakob@kirei.se"}]
 readme = "README.md"
@@ -48,12 +48,12 @@ dev = [
     "pytest-httpx2>=1.0.0",
 ]
 
-[tool.setuptools]
-packages = [ "dnstapir" ]
-
 [build-system]
-requires = ["setuptools>=77"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
 
 [tool.ruff]
 line-length = 120
