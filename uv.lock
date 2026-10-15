@@ -529,7 +529,6 @@ wheels = [
 
 [[package]]
 name = "dnstapir"
-version = "1.5.1"
 source = { editable = "." }
 dependencies = [
     { name = "structlog" },
