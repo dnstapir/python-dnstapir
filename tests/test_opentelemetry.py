@@ -68,8 +68,20 @@ def test_telemetry_settings_compat():
     assert res.spans_endpoint.host == "127.0.0.1"
     assert res.spans_endpoint.port == 4317
 
+    res = OtlpSettings()
+    assert res.insecure_grpc is None
+
     res = OtlpSettings(insecure=True)
-    assert res.insecure_grpc
+    assert res.insecure_grpc is True
+
+    res = OtlpSettings(insecure=False)
+    assert res.insecure_grpc is False
+
+    res = OtlpSettings(insecure_grpc=True)
+    assert res.insecure_grpc is True
+
+    res = OtlpSettings(insecure_grpc=False)
+    assert res.insecure_grpc is False
 
 
 @pytest.mark.parametrize(

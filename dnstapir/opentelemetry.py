@@ -18,7 +18,7 @@ from opentelemetry.sdk.metrics.export import ConsoleMetricExporter, MetricExport
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter, SpanExporter
-from pydantic import BaseModel, Field, UrlConstraints, field_validator
+from pydantic import AliasChoices, BaseModel, Field, UrlConstraints, field_validator
 from pydantic_core import Url
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ class OtlpSettings(BaseModel):
     )
     insecure_grpc: bool | None = Field(
         default=None,
-        alias="insecure",
+        validation_alias=AliasChoices("insecure_grpc", "insecure"),
         description="Whether to use an insecure connection for OTLP gRPC endpoints (default is a TLS connection)",
     )
 
