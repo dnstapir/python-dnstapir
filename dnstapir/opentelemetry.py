@@ -41,8 +41,9 @@ class OtlpSettings(BaseModel):
         default=None,
         description="The endpoint for OTLP metrics, e.g., 'grpc://localhost:4317' or 'http://localhost:4318/v1/metrics'",
     )
-    insecure: bool | None = Field(
+    insecure_grpc: bool | None = Field(
         default=None,
+        alias="insecure",
         description="Whether to use an insecure connection for OTLP gRPC endpoints (default is a TLS connection)",
     )
 
@@ -71,7 +72,7 @@ class OtlpSettings(BaseModel):
                 case "grpc":
                     return OTLPSpanExporterGrpc(
                         endpoint=f"{self.spans_endpoint.host}:{self.spans_endpoint.port or DEFAULT_OTLP_GRPC_PORT}",
-                        insecure=self.insecure,
+                        insecure=self.insecure_grpc,
                     )
                 case "http" | "https":
                     return OTLPSpanExporterHttp(endpoint=str(self.spans_endpoint))
@@ -84,7 +85,7 @@ class OtlpSettings(BaseModel):
                 case "grpc":
                     return OTLPMetricExporterGrpc(
                         endpoint=f"{self.metrics_endpoint.host}:{self.metrics_endpoint.port or DEFAULT_OTLP_GRPC_PORT}",
-                        insecure=self.insecure,
+                        insecure=self.insecure_grpc,
                     )
                 case "http" | "https":
                     return OTLPMetricExporterHttp(endpoint=str(self.metrics_endpoint))
