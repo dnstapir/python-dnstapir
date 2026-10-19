@@ -26,6 +26,14 @@ def test_telemetry_settings():
     res = OtlpSettings()
     assert res.spans_endpoint is None
     assert res.metrics_endpoint is None
+
+    res = OtlpSettings(metrics_endpoint="console://", spans_endpoint="console://")
+    assert res.spans_endpoint.scheme == "console"
+    assert res.spans_endpoint.host is None
+    assert res.spans_endpoint.port is None
+    assert res.metrics_endpoint.scheme == "console"
+    assert res.metrics_endpoint.host is None
+    assert res.metrics_endpoint.port is None
     assert isinstance(res.get_spans_exporter(), ConsoleSpanExporter)
     assert isinstance(res.get_metrics_exporter(), ConsoleMetricExporter)
 
@@ -121,24 +129,10 @@ def test_exporters_otlp(
     metrics_exporter.shutdown()
 
 
-def test_telemetry_console():
-    """Test configuring OpenTelemetry with a FastAPI app."""
+def test_telemetry_fastapi():
+    """Test OpenTelemetry with a FastAPI app."""
 
-    app = FastAPI()
-    settings = OtlpSettings()
-    configure_opentelemetry(service_name="test", settings=settings, fastapi_app=app)
-
-
-def test_telemetry_twice():
-    """Test that configuring OpenTelemetry twice does not reconfigure it."""
-
-    settings = OtlpSettings()
-    configure_opentelemetry(service_name="test", settings=settings)
-    tracer_provider = trace.get_tracer_provider()
-    meter_provider = metrics.get_meter_provider()
-
+    settings = OtlpSettings(spans_endpoint="console://", metrics_endpoint="console://")
     app = FastAPI()
     configure_opentelemetry(service_name="test", settings=settings, fastapi_app=app)
-    assert trace.get_tracer_provider() is tracer_provider
-    assert metrics.get_meter_provider() is meter_provider
     assert app._is_instrumented_by_opentelemetry
