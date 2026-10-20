@@ -23,7 +23,7 @@ from pydantic_core import Url
 
 logger = logging.getLogger(__name__)
 
-OtlpUrl = Annotated[Url, UrlConstraints(allowed_schemes=["http", "https", "grpc"])]
+OtlpUrl = Annotated[Url, UrlConstraints(allowed_schemes=["http", "https", "grpc", "console"])]
 
 DEFAULT_OTLP_SERVICE_NAME = "dnstapir"
 DEFAULT_OTLP_GRPC_PORT = 4317
@@ -35,11 +35,11 @@ class OtlpSettings(BaseModel):
     service_name: str | None = None
     spans_endpoint: OtlpUrl | None = Field(
         default=None,
-        description="The endpoint for OTLP spans, e.g., 'grpc://localhost:4317' or 'http://localhost:4318/v1/traces'",
+        description="Endpoint for OTLP spans, e.g., 'grpc://localhost:4317' or 'http://localhost:4318/v1/traces'",
     )
     metrics_endpoint: OtlpUrl | None = Field(
         default=None,
-        description="The endpoint for OTLP metrics, e.g., 'grpc://localhost:4317' or 'http://localhost:4318/v1/metrics'",
+        description="Endpoint for OTLP metrics, e.g., 'grpc://localhost:4317' or 'http://localhost:4318/v1/metrics'",
     )
     insecure_grpc: bool | None = Field(
         default=None,
@@ -65,7 +65,7 @@ class OtlpSettings(BaseModel):
                 raise ValueError("gRPC query parameter not supported")
         return value
 
-    def get_spans_exporter(self) -> SpanExporter:
+    def get_spans_exporter(self) -> SpanExporter | None:
         """Get the appropriate OTLP span exporter based on the spans endpoint scheme."""
         if self.spans_endpoint:
             match self.spans_endpoint.scheme:
@@ -76,9 +76,11 @@ class OtlpSettings(BaseModel):
                     )
                 case "http" | "https":
                     return OTLPSpanExporterHttp(endpoint=str(self.spans_endpoint))
-        return ConsoleSpanExporter()
+                case "console":
+                    return ConsoleSpanExporter()
+        return None
 
-    def get_metrics_exporter(self) -> MetricExporter:
+    def get_metrics_exporter(self) -> MetricExporter | None:
         """Get the appropriate OTLP metric exporter based on the metrics endpoint scheme."""
         if self.metrics_endpoint:
             match self.metrics_endpoint.scheme:
@@ -89,7 +91,9 @@ class OtlpSettings(BaseModel):
                     )
                 case "http" | "https":
                     return OTLPMetricExporterHttp(endpoint=str(self.metrics_endpoint))
-        return ConsoleMetricExporter()
+                case "console":
+                    return ConsoleMetricExporter()
+        return None
 
 
 def configure_opentelemetry(
@@ -97,43 +101,54 @@ def configure_opentelemetry(
     service_name: str | None = None,
     fastapi_app: FastAPI | None = None,
 ) -> None:
+    """Configure OpenTelemetry for tracing and metrics. Should only be called only once per process."""
+
     global _configured
 
     # Providers can only be set once per process, so only configure once
-    if not _configured:
-        service_name = settings.service_name or service_name or DEFAULT_OTLP_SERVICE_NAME
-        resource = Resource(attributes={SERVICE_NAME: service_name})
+    if _configured:
+        logger.debug("OpenTelemetry already configured, ignoring settings")
+        return
 
-        # Configure tracing provider
+    service_name = settings.service_name or service_name or DEFAULT_OTLP_SERVICE_NAME
+    resource = Resource(attributes={SERVICE_NAME: service_name})
+
+    # Configure tracing provider
+    if spans_exporter := settings.get_spans_exporter():
         trace_provider = TracerProvider(resource=resource)
-        processor = BatchSpanProcessor(settings.get_spans_exporter())
+        processor = BatchSpanProcessor(spans_exporter)
         trace_provider.add_span_processor(processor)
         trace.set_tracer_provider(trace_provider)
         logger.debug("OTLP spans via %s", settings.spans_endpoint or "console")
+    else:
+        logger.debug("No OTLP spans exporter configured, tracing disabled")
 
-        # Configure metrics provider
-        reader = PeriodicExportingMetricReader(settings.get_metrics_exporter())
+    # Configure metrics provider
+    if metrics_exporter := settings.get_metrics_exporter():
+        reader = PeriodicExportingMetricReader(metrics_exporter)
         meter_provider = MeterProvider(resource=resource, metric_readers=[reader])
         metrics.set_meter_provider(meter_provider)
         logger.debug("OTLP metrics via %s", settings.metrics_endpoint or "console")
+    else:
+        logger.debug("No OTLP metrics exporter configured, metrics disabled")
 
-        # Configure instrumentation for various libraries
+    # Configure instrumentation for various libraries
+    if spans_exporter or metrics_exporter:
         PymongoInstrumentor().instrument()
         BotocoreInstrumentor().instrument()
         RedisInstrumentor().instrument()
         HTTPX2ClientInstrumentor().instrument()
 
+        if fastapi_app:
+            FastAPIInstrumentor.instrument_app(
+                app=fastapi_app,
+                http_capture_headers_server_request=[
+                    "x-request-id",
+                    "traceparent",
+                    "tracestate",
+                ],
+            )
         _configured = True
         logger.info("OpenTelemetry configured")
     else:
-        logger.debug("OpenTelemetry already configured, ignoring settings")
-
-    if fastapi_app:
-        FastAPIInstrumentor.instrument_app(
-            app=fastapi_app,
-            http_capture_headers_server_request=[
-                "x-request-id",
-                "traceparent",
-                "tracestate",
-            ],
-        )
+        logger.warning("OpenTelemetry not configured, no exporters available")
